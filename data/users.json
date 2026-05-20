@@ -1,0 +1,14 @@
+[
+  {
+    "username": "admin",
+    "name": "Administrador CCruces",
+    "role": "admin",
+    "password_hash": "$2y$10$PXXNkx483mzaSL7pkNWmv.fHN8STUwDIEJ0dXdx92BECSPLMLkK4."
+  },
+  {
+    "username": "demo",
+    "name": "Usuario Demo",
+    "role": "client",
+    "password_hash": "$2y$10$wvwL/NSkoEw.1bLpSAJ8nOtbF9s75iM1lGZQIvJNVFSSYMvP8lcne"
+  }
+]

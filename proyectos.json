@@ -1,0 +1,29 @@
+[
+  {
+    "id": "bocado",
+    "titulo": "Bocado",
+    "descripcion": "Controlar el número exacto de raciones consumidas en el comedor de la empresa.",
+    "iconoClaro": "🚀",
+    "iconoOscuro": "🌙",
+    "tags": ["App", "Comedor", "digital"],
+    "imagen": "img/Bocado Logo.png"
+  },
+  {
+    "id": "conectagh",
+    "titulo": "Conecta GH",
+    "descripcion": "Plataforma para conectar y gestionar recursos humanos, integrando datos de empleados, asistencia y desempeño en tiempo real.",
+    "iconoClaro": "🔗",
+    "iconoOscuro": "🌑",
+    "imagen": "img/Logo Gh.png",
+    "tags": ["Recursos Humanos", "Gestión", "WebApp"]
+  },
+  {
+    "id": "gestionocupacional",
+    "titulo": "Gestión Ocupacional",
+    "descripcion": "Plataforma digital para la gestión integral de la Seguridad y Salud en el Trabajo (SST).",
+    "iconoClaro": "🧑‍⚕️",
+    "iconoOscuro": "🌚",
+    "imagen": "img/app gestion ocupacional.png",
+    "tags": ["SST", "Gestión", "WebApp"]
+  }
+]
