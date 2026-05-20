@@ -5,6 +5,7 @@ require_once __DIR__ . '/bootstrap.php';
 function render_header(string $title, string $active = ''): void
 {
     if (!headers_sent()) {
+        apply_security_headers();
         header('Content-Type: text/html; charset=UTF-8');
     }
 
@@ -37,6 +38,7 @@ function render_header(string $title, string $active = ''): void
             <a href="<?= e(app_url('logout.php')) ?>">Salir</a>
         <?php else: ?>
             <a class="<?= $active === 'login' ? 'is-active' : '' ?>" href="<?= e(app_url('login.php')) ?>">Ingresar</a>
+            <a class="<?= $active === 'register' ? 'is-active' : '' ?>" href="<?= e(app_url('register.php')) ?>">Crear Cuenta</a>
         <?php endif; ?>
     </nav>
 </header>

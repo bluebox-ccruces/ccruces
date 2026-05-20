@@ -16,7 +16,7 @@
     "description": "Centraliza comunicaciones, documentos y procesos de talento humano en una sola plataforma.",
     "logo": "img/Logo Gh.png",
     "demo_url": "demo.php?servicio=conectagh",
-    "private_url": "https://app.ccruces.com/conectagh",
+    "private_url": "https://rrhh.bluebox-enterprise.com/login",
     "status": "Demostración abierta + acceso privado"
   },
   {
@@ -26,7 +26,7 @@
     "description": "Monitorea riesgos laborales y automatiza acciones de seguridad y salud en el trabajo.",
     "logo": "img/Logo gestion ocupacional.png",
     "demo_url": "demo.php?servicio=gestionocupacional",
-    "private_url": "https://app.ccruces.com/gestion-ocupacional",
+    "private_url": "https://topico.bluebox-enterprise.com/admin/login",
     "status": "Demostración abierta + acceso privado"
   },
   {
@@ -36,7 +36,7 @@
     "description": "Solución para registrar labores de campo, organizar producción y dar trazabilidad operativa a equipos agrícolas.",
     "logo": "img/Logo AgroGestor.png",
     "demo_url": "demo.php?servicio=agrogestor",
-    "private_url": "https://app.ccruces.com/agrogestor",
+    "private_url": "https://tareos.blueboxsolutions.tech/admin/login",
     "status": "Demostración en evolución + acceso privado"
   },
   {

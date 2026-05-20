@@ -9,8 +9,29 @@ function posts_all(string $query = ''): array
             return $stmt->fetchAll();
         }
 
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT id, title, excerpt, content, author, published_at
+                 FROM posts
+                 WHERE MATCH(title, excerpt, content) AGAINST (? IN NATURAL LANGUAGE MODE)
+                 ORDER BY published_at DESC, created_at DESC'
+            );
+            $stmt->execute([$query]);
+            $rows = $stmt->fetchAll();
+            if (!empty($rows)) {
+                return $rows;
+            }
+        } catch (Throwable) {
+            // Fallback to LIKE when FULLTEXT is unavailable.
+        }
+
         $like = '%' . $query . '%';
-        $stmt = $pdo->prepare('SELECT id, title, excerpt, content, author, published_at FROM posts WHERE title LIKE ? OR excerpt LIKE ? OR content LIKE ? ORDER BY published_at DESC, created_at DESC');
+        $stmt = $pdo->prepare(
+            'SELECT id, title, excerpt, content, author, published_at
+             FROM posts
+             WHERE title LIKE ? OR excerpt LIKE ? OR content LIKE ?
+             ORDER BY published_at DESC, created_at DESC'
+        );
         $stmt->execute([$like, $like, $like]);
         return $stmt->fetchAll();
     }

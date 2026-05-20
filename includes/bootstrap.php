@@ -4,6 +4,7 @@ require_once __DIR__ . '/core/app.php';
 require_once __DIR__ . '/repositories/users_repository.php';
 require_once __DIR__ . '/repositories/services_repository.php';
 require_once __DIR__ . '/repositories/posts_repository.php';
+require_once __DIR__ . '/repositories/post_interactions_repository.php';
 require_once __DIR__ . '/service_modal.php';
 require_once __DIR__ . '/core/session.php';
 

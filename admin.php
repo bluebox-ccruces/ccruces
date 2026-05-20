@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 require_once __DIR__ . '/includes/layout.php';
 
@@ -31,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $title = trim((string) ($_POST['title'] ?? ''));
             $excerpt = trim((string) ($_POST['excerpt'] ?? ''));
             $content = trim((string) ($_POST['content'] ?? ''));
-            $author = trim((string) ($_POST['author'] ?? 'Cristhian Cruces'));
+            $authorInput = trim((string) ($_POST['author'] ?? ''));
+            $author = $authorInput !== '' ? $authorInput : (string) ($current['name'] ?? $current['username'] ?? 'Carlos Cruces');
 
             if ($title === '' || $content === '') {
                 set_flash('error', 'Título y contenido son obligatorios.');
@@ -128,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (user_create($username, $name, $role, $password)) {
                 set_flash('success', 'Usuario creado correctamente.');
             } else {
-                set_flash('error', 'No se pudo crear el usuario. Verifica username único y contraseña.');
+                set_flash('error', 'No se pudo crear el usuario. Verifica username único y política de contraseña segura.');
             }
         }
 
@@ -143,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (user_update($username, $name, $role, $passwordOrNull, $status)) {
                 set_flash('success', 'Usuario actualizado.');
             } else {
-                set_flash('error', 'No se pudo actualizar el usuario.');
+                set_flash('error', 'No se pudo actualizar el usuario. Verifica la política de contraseña segura.');
             }
         }
 
@@ -191,7 +192,7 @@ render_header('Administración', 'admin');
                 <label>Título <input type="text" name="title" required /></label>
                 <label>Resumen <input type="text" name="excerpt" /></label>
                 <label>Contenido <textarea name="content" required></textarea></label>
-                <label>Autor <input type="text" name="author" value="Cristhian Cruces" required /></label>
+                <label>Autor <input type="text" name="author" value="<?= e((string) ($current['name'] ?? $current['username'] ?? 'Carlos Cruces')) ?>" required /></label>
                 <button class="btn-submit" type="submit">Crear publicación</button>
             </form>
         </section>
@@ -382,3 +383,4 @@ render_header('Administración', 'admin');
     <?php endif; ?>
 </main>
 <?php render_footer(); ?>
+

@@ -78,7 +78,7 @@ foreach ($posts as $post) {
         q((string) ($post['title'] ?? '')),
         q((string) ($post['excerpt'] ?? '')),
         q((string) ($post['content'] ?? '')),
-        q((string) ($post['author'] ?? 'Cristhian Cruces')),
+        q((string) ($post['author'] ?? 'Carlos Cruces')),
         q((string) ($post['published_at'] ?? date('Y-m-d')))
     );
 }
@@ -115,3 +115,4 @@ if ($post1) {
 }
 
 echo "SQL generated.\n";
+

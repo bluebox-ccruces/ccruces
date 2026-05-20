@@ -1,5 +1,15 @@
 <?php
 
+function service_private_entry_url(array $service): string
+{
+    $privateUrlRaw = trim((string) ($service['private_url'] ?? ''));
+    if ($privateUrlRaw !== '') {
+        return str_starts_with($privateUrlRaw, 'http') ? $privateUrlRaw : app_url($privateUrlRaw);
+    }
+
+    return app_url('acceso.php?servicio=' . urlencode((string) ($service['id'] ?? '')));
+}
+
 function service_modal_details(array $service): array
 {
     $id = (string) ($service['id'] ?? '');
@@ -131,9 +141,8 @@ function service_modal_payload(array $service): array
 {
     $details = service_modal_details($service);
     $demoUrlRaw = (string) ($service['demo_url'] ?? '');
-    $privateUrlRaw = (string) ($service['private_url'] ?? '');
     $demoUrl = str_starts_with($demoUrlRaw, 'http') ? $demoUrlRaw : app_url($demoUrlRaw);
-    $privateUrl = str_starts_with($privateUrlRaw, 'http') ? $privateUrlRaw : app_url($privateUrlRaw);
+    $privateUrl = service_private_entry_url($service);
 
     $images = [];
     foreach ((array) ($details['images'] ?? []) as $img) {
@@ -182,8 +191,8 @@ function render_service_modal_shell(): void
                     <ul data-service-financial-benefits></ul>
                     <p class="service-modal__roi" data-service-roi-note></p>
                     <div class="service-modal__actions">
-                        <a class="btn-mini" href="#" data-service-demo>Ver demo</a>
-                        <a class="btn-mini main" href="#" data-service-private>Acceso privado</a>
+                        <a class="btn-mini" href="#" data-service-demo>Ver</a>
+                        <a class="btn-mini main" href="#" data-service-private>Ingresar</a>
                     </div>
                 </div>
                 <div class="service-modal__media" data-service-images></div>

@@ -4,7 +4,7 @@ require_once __DIR__ . '/includes/layout.php';
 
 $errors = [];
 $next = (string) ($_GET['next'] ?? 'panel.php');
-$allowedNext = ['panel.php', 'servicios.php', 'index.php'];
+$allowedNext = ['panel.php', 'servicios.php', 'index.php', 'blog.php', 'admin.php', 'acceso.php'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf($_POST['csrf'] ?? null)) {
@@ -18,15 +18,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $user = find_user($username);
-        if ($user && isset($user['password_hash']) && password_verify($password, (string) $user['password_hash'])) {
+        if (!$user) {
+            // Constant-time guard to reduce user enumeration via timing.
+            password_verify($password, '$2y$10$wvwL/NSkoEw.1bLpSAJ8nOtbF9s75iM1lGZQIvJNVFSSYMvP8lcne');
+        }
+
+        if ($user && user_is_locked($user)) {
+            $remainingMinutes = max(1, (int) ceil(user_lock_remaining_seconds($user) / 60));
+            $errors[] = 'Cuenta bloqueada temporalmente por seguridad. Intenta de nuevo en ' . $remainingMinutes . ' minuto(s).';
+        } elseif ($user && (int) ($user['status'] ?? 1) !== 1) {
+            $errors[] = 'Tu cuenta está inactiva. Contacta al administrador.';
+        } elseif ($user && isset($user['password_hash']) && password_verify($password, (string) ($user['password_hash'] ?? ''))) {
+            user_record_successful_login((string) ($user['username'] ?? $username));
             session_regenerate_id(true);
             $_SESSION['user'] = $user['username'];
             set_flash('success', 'Bienvenido, ' . ($user['name'] ?? $user['username']) . '.');
             header('Location: ' . app_url($next));
             exit;
+        } else {
+            if ($user) {
+                user_record_failed_login((string) ($user['username'] ?? $username));
+            }
+            $errors[] = 'Usuario o contraseña inválidos.';
         }
-
-        $errors[] = 'Usuario o contraseña inválidos.';
     }
 }
 
@@ -50,17 +64,19 @@ render_header('Ingresar', 'login');
             <input type="hidden" name="next" value="<?= e($next) ?>" />
             <label>
                 Usuario
-                <input type="text" name="username" required />
+                <input type="text" name="username" autocomplete="username" required />
             </label>
             <label>
                 Contraseña
-                <input type="password" name="password" required />
+                <input type="password" name="password" autocomplete="current-password" required />
             </label>
             <button class="btn-submit" type="submit">Ingresar</button>
         </form>
 
+        <p style="margin-top:0.9rem;color:#4a5873;">
+            ¿No tienes cuenta? <a href="<?= e(app_url('register.php')) ?>">Crea una aquí</a>.
+        </p>
         <p style="margin-top:1rem;color:#4a5873;"><strong>Demo inicial:</strong> usuario <code>demo</code> / contraseña <code>Demo@2026!</code></p>
     </section>
 </main>
 <?php render_footer(); ?>
-

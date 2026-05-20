@@ -49,9 +49,9 @@ render_header('Inicio', 'home');
                     <img src="<?= e(app_url((string) ($service['logo'] ?? 'img/Icono BB.png'))) ?>" alt="<?= e((string) ($service['name'] ?? 'Servicio')) ?>" />
                     <h3><?= e((string) ($service['name'] ?? 'Servicio')) ?></h3>
                     <p><?= e((string) ($service['description'] ?? '')) ?></p>
-                    <div class="row-actions">
-                        <a class="btn-mini" href="<?= e((string) ($modalPayload['demo_url'] ?? '#')) ?>">Ver demo</a>
-                        <a class="btn-mini main" href="<?= e(app_url('acceso.php?servicio=' . urlencode((string) ($service['id'] ?? '')))) ?>">Acceso privado</a>
+                    <div class="row-actions service-actions">
+                        <a class="btn-mini" href="<?= e((string) ($modalPayload['demo_url'] ?? '#')) ?>">Ver</a>
+                        <a class="btn-mini main" href="<?= e(service_private_entry_url($service)) ?>">Ingresar</a>
                     </div>
                 </article>
             <?php endforeach; ?>

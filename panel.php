@@ -22,9 +22,9 @@ render_header('Panel', 'panel');
             <article class="card">
                 <h3><?= e((string) ($service['name'] ?? 'Servicio')) ?></h3>
                 <p><?= e((string) ($service['tagline'] ?? '')) ?></p>
-                <div class="row-actions">
-                    <a class="btn-mini" href="<?= e(app_url((string) ($service['demo_url'] ?? '#'))) ?>">Demo</a>
-                    <a class="btn-mini main" href="<?= e(app_url('acceso.php?servicio=' . urlencode((string) ($service['id'] ?? '')))) ?>">Abrir acceso</a>
+                <div class="row-actions service-actions">
+                    <a class="btn-mini" href="<?= e(app_url((string) ($service['demo_url'] ?? '#'))) ?>">Ver</a>
+                    <a class="btn-mini main" href="<?= e(service_private_entry_url($service)) ?>">Ingresar</a>
                 </div>
             </article>
         <?php endforeach; ?>

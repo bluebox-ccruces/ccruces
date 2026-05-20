@@ -77,7 +77,7 @@ try {
             $post['title'] ?? '',
             $post['excerpt'] ?? '',
             $post['content'] ?? '',
-            $post['author'] ?? 'Cristhian Cruces',
+            $post['author'] ?? 'Carlos Cruces',
             $post['published_at'] ?? date('Y-m-d'),
         ]);
     }
@@ -89,3 +89,4 @@ try {
     fwrite(STDERR, "Sync failed: " . $e->getMessage() . "\n");
     exit(1);
 }
+

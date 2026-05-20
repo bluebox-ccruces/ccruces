@@ -23,7 +23,18 @@ function current_user(): ?array
     }
 
     $username = (string) $_SESSION['user'];
-    return find_user($username);
+    $user = find_user($username);
+    if (!$user) {
+        unset($_SESSION['user']);
+        return null;
+    }
+
+    if ((int) ($user['status'] ?? 1) !== 1) {
+        unset($_SESSION['user']);
+        return null;
+    }
+
+    return $user;
 }
 
 function is_logged_in(): bool
@@ -39,11 +50,16 @@ function is_admin(): bool
 
 function require_login(): void
 {
-    if (!is_logged_in()) {
-        set_flash('error', 'Debes iniciar sesión para continuar.');
-        header('Location: ' . app_url('login.php'));
-        exit;
+    if (is_logged_in()) {
+        return;
     }
+
+    set_flash('error', 'Debes iniciar sesión para continuar.');
+    $currentScript = basename((string) ($_SERVER['SCRIPT_NAME'] ?? 'panel.php'));
+    $allowed = ['panel.php', 'blog.php', 'servicios.php', 'index.php', 'admin.php', 'acceso.php'];
+    $next = in_array($currentScript, $allowed, true) ? $currentScript : 'panel.php';
+    header('Location: ' . app_url('login.php?next=' . urlencode($next)));
+    exit;
 }
 
 function require_admin(): void
@@ -69,4 +85,3 @@ function verify_csrf(?string $token): bool
 {
     return isset($_SESSION['csrf_token']) && is_string($token) && hash_equals($_SESSION['csrf_token'], $token);
 }
-
