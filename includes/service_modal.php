@@ -7,12 +7,48 @@ function service_video_embed_url(string $rawUrl): string
         return '';
     }
 
-    if (preg_match('~(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/shorts/)([A-Za-z0-9_-]{6,})~i', $rawUrl, $matches)) {
-        return 'https://www.youtube.com/embed/' . $matches[1] . '?rel=0';
+    if (preg_match('~<iframe[^>]+src=["\']([^"\']+)["\']~i', $rawUrl, $iframeMatch)) {
+        $rawUrl = trim((string) ($iframeMatch[1] ?? ''));
     }
 
-    if (preg_match('~youtube\.com/embed/([A-Za-z0-9_-]{6,})~i', $rawUrl, $matches)) {
-        return 'https://www.youtube.com/embed/' . $matches[1] . '?rel=0';
+    $parts = @parse_url($rawUrl);
+    if (!is_array($parts)) {
+        return $rawUrl;
+    }
+
+    $host = strtolower((string) ($parts['host'] ?? ''));
+    $path = trim((string) ($parts['path'] ?? ''), '/');
+    $query = (string) ($parts['query'] ?? '');
+
+    $videoId = '';
+    if ($host !== '') {
+        $host = preg_replace('/^(www|m|music)\./i', '', $host) ?? $host;
+    }
+
+    if ($host === 'youtu.be') {
+        $videoId = explode('/', $path)[0] ?? '';
+    } elseif ($host === 'youtube.com' || $host === 'youtube-nocookie.com') {
+        if ($path !== '') {
+            $segments = explode('/', $path);
+            $first = strtolower((string) ($segments[0] ?? ''));
+            $second = (string) ($segments[1] ?? '');
+            if (in_array($first, ['embed', 'shorts', 'live'], true)) {
+                $videoId = $second;
+            }
+        }
+
+        if ($videoId === '' && $query !== '') {
+            parse_str($query, $queryParams);
+            $videoId = (string) ($queryParams['v'] ?? '');
+        }
+    }
+
+    if (preg_match('/^[A-Za-z0-9_-]{6,}$/', $videoId) === 1) {
+        return 'https://www.youtube.com/embed/' . $videoId . '?rel=0';
+    }
+
+    if ($host === 'youtu.be' || $host === 'youtube.com' || $host === 'youtube-nocookie.com') {
+        return '';
     }
 
     return $rawUrl;
