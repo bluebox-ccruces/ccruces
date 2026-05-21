@@ -1,5 +1,27 @@
 ﻿<?php
 
+function service_embed_origin(): string
+{
+    $host = trim((string) ($_SERVER['HTTP_HOST'] ?? ''));
+    if ($host === '') {
+        return '';
+    }
+
+    $scheme = is_https_request() ? 'https' : 'http';
+    return $scheme . '://' . $host;
+}
+
+function service_embed_url_from_id(string $videoId): string
+{
+    $params = ['rel' => '0'];
+    $origin = service_embed_origin();
+    if ($origin !== '') {
+        $params['origin'] = $origin;
+    }
+
+    return 'https://www.youtube.com/embed/' . $videoId . '?' . http_build_query($params);
+}
+
 function service_video_embed_url(string $rawUrl): string
 {
     $rawUrl = trim($rawUrl);
@@ -44,7 +66,7 @@ function service_video_embed_url(string $rawUrl): string
     }
 
     if (preg_match('/^[A-Za-z0-9_-]{6,}$/', $videoId) === 1) {
-        return 'https://www.youtube.com/embed/' . $videoId . '?rel=0';
+        return service_embed_url_from_id($videoId);
     }
 
     if ($host === 'youtu.be' || $host === 'youtube.com' || $host === 'youtube-nocookie.com') {
@@ -173,6 +195,7 @@ function render_service_modal_shell(): void
                             title="Video del servicio"
                             data-service-video
                             loading="lazy"
+                            referrerpolicy="strict-origin-when-cross-origin"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen
                         ></iframe>
