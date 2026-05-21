@@ -2,6 +2,13 @@
 
 require_once __DIR__ . '/bootstrap.php';
 
+function asset_url(string $path): string
+{
+    $absolutePath = dirname(__DIR__) . '/' . ltrim($path, '/');
+    $version = is_file($absolutePath) ? (string) filemtime($absolutePath) : (string) time();
+    return app_url($path) . '?v=' . rawurlencode($version);
+}
+
 function render_header(string $title, string $active = ''): void
 {
     if (!headers_sent()) {
@@ -20,7 +27,7 @@ function render_header(string $title, string $active = ''): void
     <title><?= e($title) ?> | ccruces.com</title>
     <meta name="description" content="CCruces Holding: blog personal, demos de servicios y acceso privado a plataformas empresariales." />
     <link rel="icon" type="image/png" href="<?= e(app_url('img/Icono BB.png')) ?>" />
-    <link rel="stylesheet" href="<?= e(app_url('assets/css/site.css')) ?>" />
+    <link rel="stylesheet" href="<?= e(asset_url('assets/css/site.css')) ?>" />
 </head>
 <body>
 <header class="topbar">
@@ -54,7 +61,7 @@ function render_footer(): void
 <footer class="footer">
     <p>&copy; <?= date('Y') ?> ccruces.com | Holding digital de productos y servicios.</p>
 </footer>
-<script src="<?= e(app_url('assets/js/site.js')) ?>" defer></script>
+<script src="<?= e(asset_url('assets/js/site.js')) ?>" defer></script>
 </body>
 </html>
 <?php
