@@ -1,4 +1,59 @@
 (() => {
+  const THEME_KEY = "ccruces_theme";
+  const root = document.documentElement;
+  const themeToggle = document.querySelector("[data-theme-toggle]");
+  const themeIcon = document.querySelector("[data-theme-icon]");
+
+  const safeGetStoredTheme = () => {
+    try {
+      return localStorage.getItem(THEME_KEY);
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const safeStoreTheme = (theme) => {
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch (error) {
+      // Ignore persistence failures (private mode, restricted storage).
+    }
+  };
+
+  const applyTheme = (theme) => {
+    const nextTheme = theme === "dark" ? "dark" : "light";
+    root.setAttribute("data-theme", nextTheme);
+    root.style.colorScheme = nextTheme;
+
+    if (themeToggle) {
+      const isDark = nextTheme === "dark";
+      themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+      themeToggle.setAttribute("title", isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro");
+      themeToggle.setAttribute("aria-label", isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro");
+    }
+
+    if (themeIcon) {
+      themeIcon.innerHTML = nextTheme === "dark" ? "&#9728;" : "&#9790;";
+    }
+  };
+
+  const storedTheme = safeGetStoredTheme();
+  if (storedTheme === "dark" || storedTheme === "light") {
+    applyTheme(storedTheme);
+  } else {
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    applyTheme(prefersDark ? "dark" : "light");
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const currentTheme = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      const nextTheme = currentTheme === "dark" ? "light" : "dark";
+      applyTheme(nextTheme);
+      safeStoreTheme(nextTheme);
+    });
+  }
+
   const menuBtn = document.querySelector("[data-menu-btn]");
   const menu = document.querySelector("[data-menu]");
 

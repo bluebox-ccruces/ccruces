@@ -129,13 +129,8 @@ function service_modal_details(array $service): array
 function service_modal_payload(array $service): array
 {
     $details = service_modal_details($service);
-    $demoUrlRaw = (string) ($service['demo_url'] ?? '');
-    $demoUrl = str_starts_with($demoUrlRaw, 'http') ? $demoUrlRaw : app_url($demoUrlRaw);
     $privateUrl = service_private_entry_url($service);
     $videoUrlRaw = (string) ($details['video_url'] ?? '');
-    if ($videoUrlRaw === '' && str_starts_with($demoUrlRaw, 'http')) {
-        $videoUrlRaw = $demoUrlRaw;
-    }
     $videoEmbedUrl = service_video_embed_url($videoUrlRaw);
 
     $images = [];
@@ -159,7 +154,6 @@ function service_modal_payload(array $service): array
         'roi_note' => (string) ($details['roi_note'] ?? ''),
         'images' => $images,
         'video_url' => $videoEmbedUrl,
-        'demo_url' => $demoUrl,
         'private_url' => $privateUrl,
     ];
 }

@@ -97,35 +97,6 @@ function render_article_content(string $content): string
     return $html;
 }
 
-function resolve_service_demo_url(string $serviceId): string
-{
-    $service = service_by_id($serviceId);
-    if (!$service) {
-        return app_url('servicios.php');
-    }
-
-    $demoUrlRaw = trim((string) ($service['demo_url'] ?? ''));
-    if ($demoUrlRaw === '') {
-        return app_url('servicios.php');
-    }
-
-    return str_starts_with($demoUrlRaw, 'http') ? $demoUrlRaw : app_url($demoUrlRaw);
-}
-
-function service_for_post(string $postId): ?array
-{
-    if (!preg_match('/^post-([a-z0-9]+)-\d+$/i', $postId, $matches)) {
-        return null;
-    }
-
-    $serviceId = strtolower((string) ($matches[1] ?? ''));
-    if ($serviceId === '') {
-        return null;
-    }
-
-    return service_by_id($serviceId);
-}
-
 function blog_redirect(string $q = '', string $anchor = ''): void
 {
     $url = app_url('blog.php');
@@ -257,9 +228,6 @@ render_header('Blog', 'blog');
                 $fecha = format_blog_date((string) ($post['published_at'] ?? ''));
                 $lectura = tiempo_lectura($contenido);
                 $postId = (string) ($post['id'] ?? ('post-' . $index));
-                $service = service_for_post($postId);
-                $serviceName = trim((string) ($service['name'] ?? ''));
-                $serviceDemoUrl = $service ? resolve_service_demo_url((string) ($service['id'] ?? '')) : '';
                 $postImages = $postImagesMap[$postId] ?? [];
                 $primaryImage = $postImages[0] ?? null;
                 $likesCount = post_likes_count($postId);
@@ -287,13 +255,6 @@ render_header('Blog', 'blog');
                         <?php endif; ?>
                         <?= render_article_content($contenido) ?>
                     </div>
-
-                    <?php if ($service && $serviceName !== '' && $serviceDemoUrl !== ''): ?>
-                        <div class="article-cta">
-                            <p class="article-cta__text">¿Listo para implementar <?= e($serviceName) ?> en tu empresa?</p>
-                            <a class="article-cta__btn" href="<?= e($serviceDemoUrl) ?>">Solicitar Demo de <?= e($serviceName) ?></a>
-                        </div>
-                    <?php endif; ?>
 
                     <section class="post-engagement">
                         <div class="post-engagement__header">

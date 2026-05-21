@@ -205,7 +205,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'roi_note' => trim((string) ($_POST['roi_note'] ?? '')),
                 'video_url' => trim((string) ($_POST['video_url'] ?? '')),
                 'logo' => trim((string) ($_POST['logo'] ?? 'img/Icono BB.png')),
-                'demo_url' => trim((string) ($_POST['demo_url'] ?? '')),
                 'private_url' => trim((string) ($_POST['private_url'] ?? '')),
                 'status' => trim((string) ($_POST['status'] ?? 'Activo')),
                 'sort_order' => (int) ($_POST['sort_order'] ?? 0),
@@ -231,7 +230,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'roi_note' => trim((string) ($_POST['roi_note'] ?? '')),
                 'video_url' => trim((string) ($_POST['video_url'] ?? '')),
                 'logo' => trim((string) ($_POST['logo'] ?? 'img/Icono BB.png')),
-                'demo_url' => trim((string) ($_POST['demo_url'] ?? '')),
                 'private_url' => trim((string) ($_POST['private_url'] ?? '')),
                 'status' => trim((string) ($_POST['status'] ?? 'Activo')),
                 'sort_order' => (int) ($_POST['sort_order'] ?? 0),
@@ -470,7 +468,6 @@ render_header('Administración', 'admin');
                     <label>Estado <input type="text" name="status" value="Activo" /></label>
                 </div>
                 <div class="admin-grid-2">
-                    <label>URL demo <input type="text" name="demo_url" required /></label>
                     <label>URL privada <input type="text" name="private_url" required /></label>
                 </div>
                 <label>Orden <input type="number" name="sort_order" value="0" min="0" /></label>
@@ -506,7 +503,6 @@ render_header('Administración', 'admin');
                             <label>Estado <input type="text" name="status" value="<?= e((string) ($service['status'] ?? '')) ?>" /></label>
                         </div>
                         <div class="admin-grid-2">
-                            <label>URL demo <input type="text" name="demo_url" value="<?= e((string) ($service['demo_url'] ?? '')) ?>" required /></label>
                             <label>URL privada <input type="text" name="private_url" value="<?= e((string) ($service['private_url'] ?? '')) ?>" required /></label>
                         </div>
                         <label>Orden <input type="number" name="sort_order" value="<?= e((string) ($service['sort_order'] ?? '0')) ?>" min="0" /></label>

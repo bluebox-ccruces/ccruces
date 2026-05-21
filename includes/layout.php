@@ -32,7 +32,7 @@ function render_header(string $title, string $active = ''): void
 <body>
 <header class="topbar">
     <a class="brand" href="<?= e(app_url('index.php')) ?>">CCruces<span>Holding</span></a>
-    <button class="menu-btn" type="button" aria-label="Abrir menú" data-menu-btn>Menu</button>
+    <button class="menu-btn" type="button" aria-label="Abrir menu" data-menu-btn>Menu</button>
     <nav class="nav" data-menu>
         <a class="<?= $active === 'home' ? 'is-active' : '' ?>" href="<?= e(app_url('index.php')) ?>">Inicio</a>
         <a class="<?= $active === 'services' ? 'is-active' : '' ?>" href="<?= e(app_url('servicios.php')) ?>">Servicios</a>
@@ -48,6 +48,9 @@ function render_header(string $title, string $active = ''): void
             <a class="<?= $active === 'register' ? 'is-active' : '' ?>" href="<?= e(app_url('register.php')) ?>">Crear Cuenta</a>
         <?php endif; ?>
     </nav>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar tema" aria-pressed="false">
+        <span class="theme-toggle__icon" data-theme-icon aria-hidden="true">&#9790;</span>
+    </button>
 </header>
 <?php if ($flash): ?>
     <div class="flash flash-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>
@@ -66,5 +69,3 @@ function render_footer(): void
 </html>
 <?php
 }
-
-
