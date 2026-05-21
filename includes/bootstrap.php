@@ -10,7 +10,7 @@ require_once __DIR__ . '/service_modal.php';
 require_once __DIR__ . '/core/session.php';
 
 // Backward-compatible helpers.
-function load_json(string $name, mixed $fallback = []): mixed
+function load_json(string $name, $fallback = [])
 {
     if ($name === 'services.json') {
         return services_all();
@@ -25,7 +25,7 @@ function load_json(string $name, mixed $fallback = []): mixed
     return read_json_file($name, $fallback);
 }
 
-function save_json(string $name, mixed $data): bool
+function save_json(string $name, $data): bool
 {
     return write_json_file($name, $data);
 }

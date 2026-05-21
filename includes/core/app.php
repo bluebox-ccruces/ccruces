@@ -3,6 +3,28 @@
 const DATA_DIR = __DIR__ . '/../../data';
 const CONFIG_FILE = __DIR__ . '/../config.php';
 
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool
+    {
+        if ($needle === '') {
+            return true;
+        }
+
+        return substr($haystack, 0, strlen($needle)) === $needle;
+    }
+}
+
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool
+    {
+        if ($needle === '') {
+            return true;
+        }
+
+        return substr($haystack, -strlen($needle)) === $needle;
+    }
+}
+
 function is_https_request(): bool
 {
     if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
@@ -83,12 +105,12 @@ function normalize_text(string $value): string
     }
 
     $converted = @iconv('UTF-8', 'Windows-1252//IGNORE', $value);
-    if (is_string($converted) && $converted !== '' && mb_check_encoding($converted, 'UTF-8')) {
+    if (is_string($converted) && $converted !== '' && (!function_exists('mb_check_encoding') || mb_check_encoding($converted, 'UTF-8'))) {
         return $converted;
     }
 
     $converted = @iconv('UTF-8', 'ISO-8859-1//IGNORE', $value);
-    if (is_string($converted) && $converted !== '' && mb_check_encoding($converted, 'UTF-8')) {
+    if (is_string($converted) && $converted !== '' && (!function_exists('mb_check_encoding') || mb_check_encoding($converted, 'UTF-8'))) {
         return $converted;
     }
 
