@@ -18,6 +18,7 @@
    - `user`
    - `pass`
 4. Importa `database/schema.sql` desde phpMyAdmin.
+   - Si ya tienes una instalación previa, importa `database/add-post-images.sql` para habilitar imágenes en publicaciones.
 5. Importa `database/seed.sql` desde phpMyAdmin para cargar datos iniciales.
 6. Importa `database/ensure-utf8mb4.sql` para asegurar soporte de caracteres especiales (á, é, ñ, emojis).
 7. Opcional por consola SSH: ejecuta `php scripts/sync-json-to-db.php` para sincronizar desde JSON.
@@ -28,11 +29,11 @@
 - Recomendación estándar: `644` para archivos y `755` para carpetas.
 
 ## 5) Accesos iniciales
-- Admin: `admin` / `Admin@2026!`
-- Demo cliente: `demo` / `Demo@2026!`
+- Crea usuarios manualmente desde un entorno controlado (Admin o SQL) con contraseñas únicas y robustas.
+- No publiques ni compartas credenciales en archivos de documentación.
 
 ## 6) Seguridad inicial
-- Cambia contraseñas iniciales inmediatamente.
+- Usa contraseñas únicas por entorno (local, staging, producción).
 - Mantén `data/.htaccess` para bloquear acceso directo a JSON.
 - Usa HTTPS activo con SSL de Hostinger.
 
@@ -48,7 +49,7 @@
 - Actualiza `private_url` en `services` (DB) o en `data/services.json` antes de sincronizar.
 
 ## 9) Verificación rápida post-lanzamiento
-- Login admin y demo funcional.
+- Login funcional con cuentas creadas de forma segura.
 - Crear/eliminar post desde `admin.php`.
 - Apertura de demos y rutas privadas por servicio.
 - Navegación completa sin errores PHP.

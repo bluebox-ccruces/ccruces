@@ -12,7 +12,118 @@ function tiempo_lectura(string $texto): int
         return 1;
     }
 
-    return max(1, (int) ceil(str_word_count($plano) / 210));
+    preg_match_all('/[\p{L}\p{N}]+/u', $plano, $matches);
+    $wordCount = count($matches[0] ?? []);
+
+    return max(1, (int) ceil($wordCount / 130));
+}
+
+function format_blog_date(string $dateRaw): string
+{
+    $dateRaw = trim($dateRaw);
+    if ($dateRaw === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($dateRaw);
+    if ($timestamp === false) {
+        return $dateRaw;
+    }
+
+    $months = [
+        1 => 'enero',
+        2 => 'febrero',
+        3 => 'marzo',
+        4 => 'abril',
+        5 => 'mayo',
+        6 => 'junio',
+        7 => 'julio',
+        8 => 'agosto',
+        9 => 'septiembre',
+        10 => 'octubre',
+        11 => 'noviembre',
+        12 => 'diciembre',
+    ];
+
+    $day = (int) date('j', $timestamp);
+    $month = $months[(int) date('n', $timestamp)] ?? date('m', $timestamp);
+    $year = date('Y', $timestamp);
+
+    return $day . ' de ' . $month . ', ' . $year;
+}
+
+function render_article_content(string $content): string
+{
+    $normalized = preg_replace("/\r\n?/", "\n", $content) ?? $content;
+    $blocks = preg_split("/\n{2,}/", trim($normalized)) ?: [];
+    $html = '';
+
+    foreach ($blocks as $block) {
+        $block = trim($block);
+        if ($block === '') {
+            continue;
+        }
+
+        $lines = array_values(array_filter(
+            array_map('trim', explode("\n", $block)),
+            static fn (string $line): bool => $line !== ''
+        ));
+
+        if (count($lines) >= 2 && str_ends_with($lines[0], ':')) {
+            $listLines = array_slice($lines, 1);
+            $isBulletBlock = !empty($listLines) && array_reduce(
+                $listLines,
+                static fn (bool $carry, string $line): bool => $carry && str_starts_with($line, '- '),
+                true
+            );
+
+            if ($isBulletBlock) {
+                $html .= '<aside class="article-callout">';
+                $html .= '<p class="article-callout__title">' . e($lines[0]) . '</p>';
+                $html .= '<ul class="article-callout__list">';
+                foreach ($listLines as $line) {
+                    $html .= '<li>' . e(trim(substr($line, 2))) . '</li>';
+                }
+                $html .= '</ul>';
+                $html .= '</aside>';
+                continue;
+            }
+        }
+
+        $joined = implode(' ', $lines);
+        $html .= '<p>' . e($joined) . '</p>';
+    }
+
+    return $html;
+}
+
+function resolve_service_demo_url(string $serviceId): string
+{
+    $service = service_by_id($serviceId);
+    if (!$service) {
+        return app_url('servicios.php');
+    }
+
+    $demoUrlRaw = trim((string) ($service['demo_url'] ?? ''));
+    if ($demoUrlRaw === '') {
+        return app_url('servicios.php');
+    }
+
+    return str_starts_with($demoUrlRaw, 'http') ? $demoUrlRaw : app_url($demoUrlRaw);
+}
+
+function service_for_post(string $postId): ?array
+{
+    if (!preg_match('/^post-([a-z0-9]+)-\d+$/i', $postId, $matches)) {
+        return null;
+    }
+
+    $serviceId = strtolower((string) ($matches[1] ?? ''));
+    if ($serviceId === '') {
+        return null;
+    }
+
+    return service_by_id($serviceId);
 }
 
 function blog_redirect(string $q = '', string $anchor = ''): void
@@ -85,18 +196,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $posts = posts_all($q);
 $totalPosts = count($posts);
-
+$postIds = array_values(array_map(static fn(array $post): string => (string) ($post['id'] ?? ''), $posts));
+$postImagesMap = post_images_map_for_posts($postIds);
 render_header('Blog', 'blog');
 ?>
 <main class="blog-page">
     <section class="blog-hero wrap">
         <div class="blog-hero-image" style="background-image:url('<?= e(app_url('img/Vista principal app.jpeg')) ?>');">
             <div class="blog-hero-overlay">
-                <p class="blog-kicker">Centro de contenidos BlueBox</p>
-                <h1>Publicaciones técnicas para decisiones de negocio</h1>
+                <p class="blog-kicker">PERSPECTIVAS DIGITALES</p>
+                <h1>Información técnica que impulsa la rentabilidad empresarial.</h1>
                 <p>
-                    Análisis operativo, diseño de soluciones y casos aplicados para escalar procesos con mayor control,
-                    trazabilidad y eficiencia.
+                    Casos prácticos y documentación detallada sobre cómo implementar arquitectura digital para
+                    auditar, controlar y escalar operaciones en tiempo real.
                 </p>
                 <div class="blog-hero-actions">
                     <a class="btn btn-main" href="#publicaciones">Ver publicaciones</a>
@@ -142,9 +254,14 @@ render_header('Blog', 'blog');
                 $resumen = (string) ($post['excerpt'] ?? '');
                 $contenido = (string) ($post['content'] ?? '');
                 $autor = (string) ($post['author'] ?? 'Autor');
-                $fecha = (string) ($post['published_at'] ?? '');
+                $fecha = format_blog_date((string) ($post['published_at'] ?? ''));
                 $lectura = tiempo_lectura($contenido);
                 $postId = (string) ($post['id'] ?? ('post-' . $index));
+                $service = service_for_post($postId);
+                $serviceName = trim((string) ($service['name'] ?? ''));
+                $serviceDemoUrl = $service ? resolve_service_demo_url((string) ($service['id'] ?? '')) : '';
+                $postImages = $postImagesMap[$postId] ?? [];
+                $primaryImage = $postImages[0] ?? null;
                 $likesCount = post_likes_count($postId);
                 $likedByCurrentUser = $currentUser ? post_is_liked_by_user($postId, (string) ($currentUser['username'] ?? '')) : false;
                 $comments = post_comments_for_post($postId);
@@ -164,8 +281,24 @@ render_header('Blog', 'blog');
                     </header>
 
                     <div class="<?= $index === 0 ? 'articulo-cuerpo' : 'article-body' ?>">
-                        <?= nl2br(e($contenido)) ?>
+                        <?php if ($primaryImage): ?>
+                            <figure class="article-image">
+                                <img
+                                    src="<?= e(app_url((string) ($primaryImage['image_path'] ?? ''))) ?>"
+                                    alt="<?= e((string) ($primaryImage['alt_text'] ?? $titulo)) ?>"
+                                    loading="lazy"
+                                />
+                            </figure>
+                        <?php endif; ?>
+                        <?= render_article_content($contenido) ?>
                     </div>
+
+                    <?php if ($service && $serviceName !== '' && $serviceDemoUrl !== ''): ?>
+                        <div class="article-cta">
+                            <p class="article-cta__text">¿Listo para implementar <?= e($serviceName) ?> en tu empresa?</p>
+                            <a class="article-cta__btn" href="<?= e($serviceDemoUrl) ?>">Solicitar Demo de <?= e($serviceName) ?></a>
+                        </div>
+                    <?php endif; ?>
 
                     <section class="post-engagement">
                         <div class="post-engagement__header">
@@ -179,8 +312,16 @@ render_header('Blog', 'blog');
                             <input type="hidden" name="action" value="like_toggle" />
                             <input type="hidden" name="post_id" value="<?= e($postId) ?>" />
                             <input type="hidden" name="q" value="<?= e($q) ?>" />
-                            <button type="submit" class="btn-mini <?= $likedByCurrentUser ? 'main' : '' ?>">
-                                <?= $likedByCurrentUser ? 'Quitar like' : 'Dar like' ?>
+                            <button
+                                type="submit"
+                                class="post-like-btn <?= $likedByCurrentUser ? 'is-liked' : '' ?>"
+                                aria-label="<?= $likedByCurrentUser ? 'Quitar like' : 'Dar like' ?>"
+                                title="<?= $likedByCurrentUser ? 'Quitar like' : 'Dar like' ?>"
+                            >
+                                <svg class="post-like-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M12 21s-6.8-4.2-9.5-8.2C.3 9.5 1.2 5.3 4.8 4.2c2.3-.7 4.4.2 5.7 2 1.3-1.8 3.4-2.7 5.7-2 3.6 1.1 4.5 5.3 2.3 8.6C18.8 16.8 12 21 12 21z"></path>
+                                </svg>
+                                <span class="sr-only"><?= $likedByCurrentUser ? 'Quitar like' : 'Dar like' ?></span>
                             </button>
                         </form>
 

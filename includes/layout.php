@@ -16,7 +16,7 @@ function render_header(string $title, string $active = ''): void
 <html lang="es">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title><?= e($title) ?> | ccruces.com</title>
     <meta name="description" content="CCruces Holding: blog personal, demos de servicios y acceso privado a plataformas empresariales." />
     <link rel="icon" type="image/png" href="<?= e(app_url('img/Icono BB.png')) ?>" />

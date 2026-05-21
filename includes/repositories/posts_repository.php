@@ -128,6 +128,12 @@ function post_update(string $id, string $title, string $excerpt, string $content
 
 function post_delete(string $id): bool
 {
+    if ($id === '') {
+        return false;
+    }
+
+    post_images_delete_by_post_id($id);
+
     $pdo = db();
     if ($pdo) {
         $stmt = $pdo->prepare('DELETE FROM posts WHERE id = ?');

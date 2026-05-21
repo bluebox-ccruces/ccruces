@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once __DIR__ . '/includes/layout.php';
 
@@ -12,10 +12,10 @@ render_header('Inicio', 'home');
     <section class="hero wrap">
         <article class="hero-card">
             <p class="kicker">CCruces Holding</p>
-            <h1>Descubre soluciones digitales reales para tu empresa, en un solo lugar.</h1>
+            <h1>Innovación digital y gestión inteligente en un solo lugar.</h1>
             <p>
-                En ccruces.com puedes conocer nuestros servicios, probar demos funcionales y acceder a plataformas
-                privadas si ya eres cliente. Todo pensado para que tomes decisiones rápidas y con confianza.
+                Centraliza tus operaciones con herramientas diseñadas para optimizar la productividad de tu empresa.
+                Explora nuestras soluciones disponibles o ingresa a tu panel privado como cliente.
             </p>
             <div class="hero-metrics">
                 <span class="metric"><?= count($services) ?> soluciones disponibles</span>
@@ -32,29 +32,38 @@ render_header('Inicio', 'home');
     <section class="section wrap">
         <h2>Servicios del holding</h2>
         <p class="lead">Modo demo para prospectos y acceso privado para clientes con permisos.</p>
-        <div class="grid">
-            <?php foreach ($services as $service): ?>
-                <?php
-                $modalPayload = service_modal_payload($service);
-                $modalJson = json_encode($modalPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                ?>
-                <article
-                    class="card service-card"
-                    role="button"
-                    tabindex="0"
-                    data-service-card
-                    data-service-payload="<?= e($modalJson ?: '{}') ?>"
-                    aria-label="Ver detalles de <?= e((string) ($service['name'] ?? 'Servicio')) ?>"
-                >
-                    <img src="<?= e(app_url((string) ($service['logo'] ?? 'img/Icono BB.png'))) ?>" alt="<?= e((string) ($service['name'] ?? 'Servicio')) ?>" />
-                    <h3><?= e((string) ($service['name'] ?? 'Servicio')) ?></h3>
-                    <p><?= e((string) ($service['description'] ?? '')) ?></p>
-                    <div class="row-actions service-actions">
-                        <a class="btn-mini" href="<?= e((string) ($modalPayload['demo_url'] ?? '#')) ?>">Ver</a>
-                        <a class="btn-mini main" href="<?= e(service_private_entry_url($service)) ?>">Ingresar</a>
-                    </div>
-                </article>
-            <?php endforeach; ?>
+        <div class="services-slider" data-service-slider>
+            <button class="services-slider__control" type="button" data-slider-prev aria-label="Servicio anterior">&#8249;</button>
+            <div class="services-slider__viewport" data-slider-viewport tabindex="0" aria-label="Carrusel de servicios">
+                <div class="services-slider__track">
+                    <?php foreach ($services as $service): ?>
+                        <?php
+                        $modalPayload = service_modal_payload($service);
+                        $modalJson = json_encode($modalPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                        ?>
+                        <article
+                            class="card service-card services-slider__item"
+                            role="button"
+                            tabindex="0"
+                            data-service-id="<?= e((string) ($service['id'] ?? '')) ?>"
+                            data-service-card
+                            data-service-payload="<?= e($modalJson ?: '{}') ?>"
+                            aria-label="Ver detalles de <?= e((string) ($service['name'] ?? 'Servicio')) ?>"
+                        >
+                            <div class="service-card__logo-frame">
+                                <img class="service-card__logo" src="<?= e(app_url((string) ($service['logo'] ?? 'img/Icono BB.png'))) ?>" alt="<?= e((string) ($service['name'] ?? 'Servicio')) ?>" />
+                            </div>
+                            <h3><?= e((string) ($service['name'] ?? 'Servicio')) ?></h3>
+                            <p><?= e((string) ($service['description'] ?? '')) ?></p>
+                            <div class="row-actions service-actions">
+                                <a class="btn-mini" href="<?= e((string) ($modalPayload['demo_url'] ?? '#')) ?>">Información</a>
+                                <a class="btn-mini main" href="<?= e(service_private_entry_url($service)) ?>">Ingresar</a>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <button class="services-slider__control" type="button" data-slider-next aria-label="Siguiente servicio">&#8250;</button>
         </div>
     </section>
 
@@ -64,17 +73,18 @@ render_header('Inicio', 'home');
         <div class="grid">
             <?php foreach ($featuredPosts as $post): ?>
                 <article class="post">
-                    <h3><?= e((string) ($post['title'] ?? 'Sin título')) ?></h3>
+                    <h3><?= e((string) ($post['title'] ?? 'Sin tÃ­tulo')) ?></h3>
                     <small><?= e((string) ($post['author'] ?? 'Autor')) ?> · <?= e((string) ($post['published_at'] ?? '')) ?></small>
                     <p><?= e((string) ($post['excerpt'] ?? '')) ?></p>
                 </article>
             <?php endforeach; ?>
         </div>
         <div class="row-actions" style="margin-top:1rem;">
-            <a class="btn-mini main" href="<?= e(app_url('blog.php')) ?>">Ver todo el blog</a>
+            <a class="btn-mini main blog-view-all-btn" href="<?= e(app_url('blog.php')) ?>">Ver todo el blog</a>
         </div>
     </section>
 </main>
 <?php render_service_modal_shell(); ?>
 <?php render_footer(); ?>
+
 

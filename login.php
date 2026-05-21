@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = find_user($username);
         if (!$user) {
             // Constant-time guard to reduce user enumeration via timing.
-            password_verify($password, '$2y$10$wvwL/NSkoEw.1bLpSAJ8nOtbF9s75iM1lGZQIvJNVFSSYMvP8lcne');
+            password_verify($password, '$2y$10$xDxiTJoFCV4Ql6kgYxXUCO79avXrPHywPPlnfAf78B0.DGngnlU/q');
         }
 
         if ($user && user_is_locked($user)) {
@@ -76,7 +76,6 @@ render_header('Ingresar', 'login');
         <p style="margin-top:0.9rem;color:#4a5873;">
             ¿No tienes cuenta? <a href="<?= e(app_url('register.php')) ?>">Crea una aquí</a>.
         </p>
-        <p style="margin-top:1rem;color:#4a5873;"><strong>Demo inicial:</strong> usuario <code>demo</code> / contraseña <code>Demo@2026!</code></p>
     </section>
 </main>
 <?php render_footer(); ?>

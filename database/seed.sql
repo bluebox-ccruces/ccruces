@@ -1,8 +1,7 @@
 SET NAMES utf8mb4;
 
 INSERT INTO users (username, name, role, password_hash, status) VALUES
-('admin', 'Administrador CCruces', 'admin', '$2y$10$PXXNkx483mzaSL7pkNWmv.fHN8STUwDIEJ0dXdx92BECSPLMLkK4.', 1),
-('demo', 'Usuario Demo', 'client', '$2y$10$wvwL/NSkoEw.1bLpSAJ8nOtbF9s75iM1lGZQIvJNVFSSYMvP8lcne', 1)
+('ccruces', 'Administrador CCruces', 'admin', '$2y$10$bnOVcnWTaKJiDzRVVszSi.UemM1kmr93aWCc7Nxd7mTQ/j/JD3Mry', 1)
 ON DUPLICATE KEY UPDATE
 name = VALUES(name),
 role = VALUES(role),

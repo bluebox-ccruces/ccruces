@@ -19,16 +19,21 @@ render_header('Servicios', 'services');
                 class="card service-card"
                 role="button"
                 tabindex="0"
+                data-service-id="<?= e((string) ($service['id'] ?? '')) ?>"
                 data-service-card
                 data-service-payload="<?= e($modalJson ?: '{}') ?>"
                 aria-label="Ver detalles de <?= e((string) ($service['name'] ?? 'Servicio')) ?>"
             >
-                <img src="<?= e(app_url((string) ($service['logo'] ?? 'img/Icono BB.png'))) ?>" alt="<?= e((string) ($service['name'] ?? 'Servicio')) ?>" />
+                <div class="service-card__logo-frame">
+                    <img class="service-card__logo" src="<?= e(app_url((string) ($service['logo'] ?? 'img/Icono BB.png'))) ?>" alt="<?= e((string) ($service['name'] ?? 'Servicio')) ?>" />
+                </div>
                 <h3><?= e((string) ($service['name'] ?? 'Servicio')) ?></h3>
-                <p><strong><?= e((string) ($service['tagline'] ?? '')) ?></strong></p>
-                <p><?= e((string) ($service['description'] ?? '')) ?></p>
+                <div class="service-card__text">
+                    <p class="service-card__tagline"><strong><?= e((string) ($service['tagline'] ?? '')) ?></strong></p>
+                    <p class="service-card__description"><?= e((string) ($service['description'] ?? '')) ?></p>
+                </div>
                 <div class="row-actions service-actions">
-                    <a class="btn-mini" href="<?= e((string) ($modalPayload['demo_url'] ?? '#')) ?>">Ver</a>
+                    <a class="btn-mini" href="<?= e((string) ($modalPayload['demo_url'] ?? '#')) ?>">Información</a>
                     <a class="btn-mini main" href="<?= e(service_private_entry_url($service)) ?>">Ingresar</a>
                 </div>
             </article>

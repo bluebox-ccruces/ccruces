@@ -1,14 +1,11 @@
 [
-  {
-    "username": "admin",
-    "name": "Administrador CCruces",
-    "role": "admin",
-    "password_hash": "$2y$10$PXXNkx483mzaSL7pkNWmv.fHN8STUwDIEJ0dXdx92BECSPLMLkK4."
-  },
-  {
-    "username": "demo",
-    "name": "Usuario Demo",
-    "role": "client",
-    "password_hash": "$2y$10$wvwL/NSkoEw.1bLpSAJ8nOtbF9s75iM1lGZQIvJNVFSSYMvP8lcne"
-  }
+    {
+        "username": "ccruces",
+        "name": "Administrador CCruces",
+        "role": "admin",
+        "password_hash": "$2y$10$bnOVcnWTaKJiDzRVVszSi.UemM1kmr93aWCc7Nxd7mTQ/j/JD3Mry",
+        "failed_login_attempts": 0,
+        "locked_until": null,
+        "last_login_at": "2026-05-21T05:09:49+02:00"
+    }
 ]

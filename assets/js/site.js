@@ -14,6 +14,66 @@
     });
   }
 
+  const serviceSliders = document.querySelectorAll("[data-service-slider]");
+  serviceSliders.forEach((slider) => {
+    const viewport = slider.querySelector("[data-slider-viewport]");
+    const prevBtn = slider.querySelector("[data-slider-prev]");
+    const nextBtn = slider.querySelector("[data-slider-next]");
+
+    if (!viewport) {
+      return;
+    }
+
+    const getStep = () => Math.max(280, Math.floor(viewport.clientWidth * 0.9));
+
+    const updateControls = () => {
+      const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+      const canScroll = maxScroll > 4;
+      const atStart = viewport.scrollLeft <= 4;
+      const atEnd = viewport.scrollLeft >= maxScroll - 4;
+
+      if (prevBtn) {
+        prevBtn.hidden = !canScroll;
+        prevBtn.disabled = !canScroll || atStart;
+      }
+
+      if (nextBtn) {
+        nextBtn.hidden = !canScroll;
+        nextBtn.disabled = !canScroll || atEnd;
+      }
+    };
+
+    const move = (direction) => {
+      viewport.scrollBy({
+        left: getStep() * direction,
+        behavior: "smooth",
+      });
+    };
+
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => move(-1));
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => move(1));
+    }
+
+    viewport.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        move(-1);
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        move(1);
+      }
+    });
+
+    viewport.addEventListener("scroll", updateControls, { passive: true });
+    window.addEventListener("resize", updateControls);
+    updateControls();
+  });
+
   const modal = document.querySelector("[data-service-modal]");
   const cards = document.querySelectorAll("[data-service-card]");
 

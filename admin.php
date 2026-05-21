@@ -4,6 +4,75 @@ require_once __DIR__ . '/includes/layout.php';
 
 require_admin();
 
+const POST_IMAGE_UPLOAD_DIR = __DIR__ . '/img/posts';
+const POST_IMAGE_UPLOAD_WEB_PREFIX = 'img/posts/';
+
+function ensure_post_image_upload_dir(): bool
+{
+    if (is_dir(POST_IMAGE_UPLOAD_DIR)) {
+        return true;
+    }
+
+    return mkdir(POST_IMAGE_UPLOAD_DIR, 0755, true);
+}
+
+function admin_store_post_image(array $file): array
+{
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        return [false, 'No se pudo subir la imagen.'];
+    }
+
+    $tmpPath = (string) ($file['tmp_name'] ?? '');
+    if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+        return [false, 'Archivo de imagen inválido.'];
+    }
+
+    $size = (int) ($file['size'] ?? 0);
+    if ($size <= 0 || $size > 5 * 1024 * 1024) {
+        return [false, 'La imagen debe pesar máximo 5MB.'];
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = (string) $finfo->file($tmpPath);
+    $allowed = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'image/gif' => 'gif',
+    ];
+    if (!isset($allowed[$mime])) {
+        return [false, 'Formato no permitido. Usa JPG, PNG, WEBP o GIF.'];
+    }
+
+    if (!ensure_post_image_upload_dir()) {
+        return [false, 'No fue posible preparar el directorio de imágenes.'];
+    }
+
+    $fileName = 'post_' . date('Ymd_His') . '_' . bin2hex(random_bytes(5)) . '.' . $allowed[$mime];
+    $targetPath = POST_IMAGE_UPLOAD_DIR . '/' . $fileName;
+    if (!move_uploaded_file($tmpPath, $targetPath)) {
+        return [false, 'No fue posible guardar la imagen en el servidor.'];
+    }
+
+    return [true, POST_IMAGE_UPLOAD_WEB_PREFIX . $fileName];
+}
+
+function admin_delete_post_image_file_if_orphan(string $relativePath): void
+{
+    if ($relativePath === '' || post_image_path_usage_count($relativePath) > 0) {
+        return;
+    }
+
+    if (!str_starts_with($relativePath, POST_IMAGE_UPLOAD_WEB_PREFIX)) {
+        return;
+    }
+
+    $absolutePath = __DIR__ . '/' . ltrim($relativePath, '/');
+    if (is_file($absolutePath)) {
+        @unlink($absolutePath);
+    }
+}
+
 $section = (string) ($_GET['section'] ?? 'posts');
 $validSections = ['posts', 'services', 'users'];
 if (!in_array($section, $validSections, true)) {
@@ -60,10 +129,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'delete') {
             $id = (string) ($_POST['id'] ?? '');
+            $existingImages = post_images_for_post($id);
             if (post_delete($id)) {
+                foreach ($existingImages as $image) {
+                    admin_delete_post_image_file_if_orphan((string) ($image['image_path'] ?? ''));
+                }
                 set_flash('success', 'Publicación eliminada.');
             } else {
                 set_flash('error', 'No se pudo eliminar la publicación.');
+            }
+        }
+    }
+
+    if ($entity === 'post_image') {
+        if ($action === 'upload') {
+            $postId = trim((string) ($_POST['post_id'] ?? ''));
+            $altText = trim((string) ($_POST['alt_text'] ?? ''));
+            $sortOrder = (int) ($_POST['sort_order'] ?? 0);
+            $isPrimary = isset($_POST['is_primary']) ? 1 : 0;
+            $file = $_FILES['image_file'] ?? null;
+
+            if ($postId === '' || !post_by_id($postId)) {
+                set_flash('error', 'Publicación no válida para adjuntar imagen.');
+            } elseif (!is_array($file)) {
+                set_flash('error', 'Debes seleccionar una imagen.');
+            } else {
+                [$ok, $storedPathOrError] = admin_store_post_image($file);
+                if (!$ok) {
+                    set_flash('error', (string) $storedPathOrError);
+                } elseif (post_image_create($postId, (string) $storedPathOrError, $altText, $sortOrder, $isPrimary)) {
+                    set_flash('success', 'Imagen agregada a la publicación.');
+                } else {
+                    $absolute = __DIR__ . '/' . ltrim((string) $storedPathOrError, '/');
+                    if (is_file($absolute)) {
+                        @unlink($absolute);
+                    }
+                    set_flash('error', 'No se pudo registrar la imagen en la publicación.');
+                }
+            }
+        }
+
+        if ($action === 'delete') {
+            $imageId = trim((string) ($_POST['image_id'] ?? ''));
+            $deletedPath = null;
+            if (post_image_delete($imageId, $deletedPath)) {
+                admin_delete_post_image_file_if_orphan((string) ($deletedPath ?? ''));
+                set_flash('success', 'Imagen eliminada.');
+            } else {
+                set_flash('error', 'No se pudo eliminar la imagen.');
+            }
+        }
+
+        if ($action === 'set_primary') {
+            $postId = trim((string) ($_POST['post_id'] ?? ''));
+            $imageId = trim((string) ($_POST['image_id'] ?? ''));
+            if (post_image_set_primary($postId, $imageId)) {
+                set_flash('success', 'Imagen principal actualizada.');
+            } else {
+                set_flash('error', 'No se pudo actualizar la imagen principal.');
             }
         }
     }
@@ -167,6 +290,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $posts = posts_all();
 $services = services_all();
 $users = users_all();
+$postIds = array_values(array_map(static fn(array $post): string => (string) ($post['id'] ?? ''), $posts));
+$postImagesMap = post_images_map_for_posts($postIds);
 
 render_header('Administración', 'admin');
 ?>
@@ -183,7 +308,7 @@ render_header('Administración', 'admin');
     <?php if ($section === 'posts'): ?>
         <section class="admin-panel">
             <h3>Nueva publicación</h3>
-            <form method="post" class="admin-form">
+            <form method="post" enctype="multipart/form-data" class="admin-form">
                 <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>" />
                 <input type="hidden" name="entity" value="post" />
                 <input type="hidden" name="action" value="create" />
@@ -199,13 +324,17 @@ render_header('Administración', 'admin');
 
         <section class="admin-stack">
             <?php foreach ($posts as $post): ?>
+                <?php
+                $postId = (string) ($post['id'] ?? '');
+                $postImages = $postImagesMap[$postId] ?? [];
+                ?>
                 <article class="admin-item">
-                    <form method="post" class="admin-form compact">
+                    <form method="post" enctype="multipart/form-data" class="admin-form compact">
                         <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>" />
                         <input type="hidden" name="entity" value="post" />
                         <input type="hidden" name="action" value="update" />
                         <input type="hidden" name="section" value="posts" />
-                        <input type="hidden" name="id" value="<?= e((string) ($post['id'] ?? '')) ?>" />
+                        <input type="hidden" name="id" value="<?= e($postId) ?>" />
 
                         <label>Título <input type="text" name="title" value="<?= e((string) ($post['title'] ?? '')) ?>" required /></label>
                         <label>Resumen <input type="text" name="excerpt" value="<?= e((string) ($post['excerpt'] ?? '')) ?>" /></label>
@@ -219,6 +348,73 @@ render_header('Administración', 'admin');
                             <button class="btn-submit" type="submit">Guardar cambios</button>
                         </div>
                     </form>
+
+                    <section class="admin-post-images">
+                        <h4>Imágenes de la publicación</h4>
+                        <form method="post" enctype="multipart/form-data" class="admin-form compact">
+                            <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>" />
+                            <input type="hidden" name="entity" value="post_image" />
+                            <input type="hidden" name="action" value="upload" />
+                            <input type="hidden" name="section" value="posts" />
+                            <input type="hidden" name="post_id" value="<?= e($postId) ?>" />
+
+                            <div class="admin-grid-2">
+                                <label>Imagen <input type="file" name="image_file" accept="image/jpeg,image/png,image/webp,image/gif" required /></label>
+                                <label>Texto alternativo (opcional) <input type="text" name="alt_text" placeholder="Descripción breve de la imagen" /></label>
+                            </div>
+                            <div class="admin-grid-2">
+                                <label>Orden <input type="number" name="sort_order" value="<?= count($postImages) + 1 ?>" min="0" /></label>
+                                <label class="admin-inline-check">
+                                    <input type="checkbox" name="is_primary" value="1" <?= empty($postImages) ? 'checked' : '' ?> />
+                                    Marcar como imagen principal
+                                </label>
+                            </div>
+                            <button class="btn-submit" type="submit">Subir imagen</button>
+                        </form>
+
+                        <?php if (empty($postImages)): ?>
+                            <p class="admin-images-empty">Esta publicación aún no tiene imágenes.</p>
+                        <?php else: ?>
+                            <div class="admin-images-grid">
+                                <?php foreach ($postImages as $image): ?>
+                                    <?php
+                                    $imageId = (string) ($image['id'] ?? '');
+                                    $imagePath = (string) ($image['image_path'] ?? '');
+                                    $isPrimary = (int) ($image['is_primary'] ?? 0) === 1;
+                                    $altText = (string) ($image['alt_text'] ?? '');
+                                    ?>
+                                    <article class="admin-image-card">
+                                        <img src="<?= e(app_url($imagePath)) ?>" alt="<?= e($altText !== '' ? $altText : 'Imagen de publicación') ?>" />
+                                        <p class="admin-image-meta"><?= $isPrimary ? 'Principal' : 'Secundaria' ?> · Orden <?= (int) ($image['sort_order'] ?? 0) ?></p>
+                                        <?php if ($altText !== ''): ?>
+                                            <p class="admin-image-alt"><?= e($altText) ?></p>
+                                        <?php endif; ?>
+                                        <div class="admin-image-actions">
+                                            <?php if (!$isPrimary): ?>
+                                                <form method="post">
+                                                    <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>" />
+                                                    <input type="hidden" name="entity" value="post_image" />
+                                                    <input type="hidden" name="action" value="set_primary" />
+                                                    <input type="hidden" name="section" value="posts" />
+                                                    <input type="hidden" name="post_id" value="<?= e($postId) ?>" />
+                                                    <input type="hidden" name="image_id" value="<?= e($imageId) ?>" />
+                                                    <button class="btn-mini" type="submit">Hacer principal</button>
+                                                </form>
+                                            <?php endif; ?>
+                                            <form method="post" onsubmit="return confirm('¿Eliminar esta imagen?');">
+                                                <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>" />
+                                                <input type="hidden" name="entity" value="post_image" />
+                                                <input type="hidden" name="action" value="delete" />
+                                                <input type="hidden" name="section" value="posts" />
+                                                <input type="hidden" name="image_id" value="<?= e($imageId) ?>" />
+                                                <button class="btn-mini" type="submit">Eliminar imagen</button>
+                                            </form>
+                                        </div>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </section>
 
                     <form method="post" onsubmit="return confirm('¿Eliminar esta publicación?');" class="admin-delete-form">
                         <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>" />
