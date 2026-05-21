@@ -8,11 +8,11 @@ function users_all(): array
     $pdo = db();
     if ($pdo) {
         try {
-            $stmt = $pdo->query('SELECT username, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users ORDER BY id ASC');
+            $stmt = $pdo->query('SELECT username, email, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users ORDER BY id ASC');
             return $stmt->fetchAll();
         } catch (Throwable) {
             // Backward compatibility for schemas without hardening columns yet.
-            $stmt = $pdo->query('SELECT username, name, role, password_hash, status FROM users ORDER BY id ASC');
+            $stmt = $pdo->query('SELECT username, email, name, role, password_hash, status FROM users ORDER BY id ASC');
             return $stmt->fetchAll();
         }
     }
@@ -26,13 +26,13 @@ function find_user(string $username): ?array
     $pdo = db();
     if ($pdo) {
         try {
-            $stmt = $pdo->prepare('SELECT username, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users WHERE LOWER(username)=LOWER(?) LIMIT 1');
+            $stmt = $pdo->prepare('SELECT username, email, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users WHERE LOWER(username)=LOWER(?) LIMIT 1');
             $stmt->execute([$username]);
             $user = $stmt->fetch();
             return $user ?: null;
         } catch (Throwable) {
             // Backward compatibility for schemas without hardening columns yet.
-            $stmt = $pdo->prepare('SELECT username, name, role, password_hash, status FROM users WHERE LOWER(username)=LOWER(?) LIMIT 1');
+            $stmt = $pdo->prepare('SELECT username, email, name, role, password_hash, status FROM users WHERE LOWER(username)=LOWER(?) LIMIT 1');
             $stmt->execute([$username]);
             $user = $stmt->fetch();
             return $user ?: null;
@@ -51,6 +51,42 @@ function find_user(string $username): ?array
 function user_username_is_valid(string $username): bool
 {
     return (bool) preg_match('/^[a-zA-Z0-9._-]{3,64}$/', $username);
+}
+
+function user_email_is_valid(string $email): bool
+{
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+function find_user_by_email(string $email): ?array
+{
+    $email = trim($email);
+    if ($email === '') {
+        return null;
+    }
+
+    $pdo = db();
+    if ($pdo) {
+        try {
+            $stmt = $pdo->prepare('SELECT username, email, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users WHERE LOWER(email)=LOWER(?) LIMIT 1');
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+            return $user ?: null;
+        } catch (Throwable) {
+            $stmt = $pdo->prepare('SELECT username, email, name, role, password_hash, status FROM users WHERE LOWER(email)=LOWER(?) LIMIT 1');
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+            return $user ?: null;
+        }
+    }
+
+    foreach (users_all() as $user) {
+        if (strcasecmp((string) ($user['email'] ?? ''), $email) === 0) {
+            return $user;
+        }
+    }
+
+    return null;
 }
 
 function user_password_policy_errors(string $password): array
@@ -173,17 +209,21 @@ function user_record_failed_login(string $username): void
     write_json_file('users.json', $rows);
 }
 
-function user_create(string $username, string $name, string $role, string $password): bool
+function user_create(string $username, string $email, string $name, string $role, string $password): bool
 {
     $username = trim($username);
+    $email = trim($email);
     $name = trim($name);
     $role = in_array($role, ['admin', 'client'], true) ? $role : 'client';
 
-    if ($username === '' || $name === '' || $password === '') {
+    if ($username === '' || $email === '' || $name === '' || $password === '') {
         return false;
     }
 
     if (!user_username_is_valid($username)) {
+        return false;
+    }
+    if (!user_email_is_valid($email)) {
         return false;
     }
 
@@ -191,7 +231,7 @@ function user_create(string $username, string $name, string $role, string $passw
         return false;
     }
 
-    if (find_user($username)) {
+    if (find_user($username) || find_user_by_email($email)) {
         return false;
     }
 
@@ -199,13 +239,14 @@ function user_create(string $username, string $name, string $role, string $passw
     $pdo = db();
 
     if ($pdo) {
-        $stmt = $pdo->prepare('INSERT INTO users (username, name, role, password_hash, status) VALUES (?, ?, ?, ?, 1)');
-        return $stmt->execute([$username, $name, $role, $hash]);
+        $stmt = $pdo->prepare('INSERT INTO users (username, email, name, role, password_hash, status) VALUES (?, ?, ?, ?, ?, 1)');
+        return $stmt->execute([$username, $email, $name, $role, $hash]);
     }
 
     $rows = users_all();
     $rows[] = [
         'username' => $username,
+        'email' => $email,
         'name' => $name,
         'role' => $role,
         'password_hash' => $hash,
@@ -218,15 +259,16 @@ function user_create(string $username, string $name, string $role, string $passw
     return write_json_file('users.json', $rows);
 }
 
-function user_update(string $username, string $name, string $role, ?string $password = null, ?int $status = null): bool
+function user_update(string $username, string $email, string $name, string $role, ?string $password = null, ?int $status = null): bool
 {
     $existing = find_user($username);
     if (!$existing) {
         return false;
     }
 
+    $email = trim($email);
     $name = trim($name);
-    if ($name === '') {
+    if ($name === '' || $email === '' || !user_email_is_valid($email)) {
         return false;
     }
 
@@ -237,21 +279,27 @@ function user_update(string $username, string $name, string $role, ?string $pass
         return false;
     }
 
+    $emailOwner = find_user_by_email($email);
+    if ($emailOwner && strcasecmp((string) ($emailOwner['username'] ?? ''), $username) !== 0) {
+        return false;
+    }
+
     $pdo = db();
     if ($pdo) {
         if ($password !== null && $password !== '') {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('UPDATE users SET name = ?, role = ?, password_hash = ?, status = ? WHERE username = ?');
-            return $stmt->execute([$name, $role, $hash, $statusValue, $username]);
+            $stmt = $pdo->prepare('UPDATE users SET email = ?, name = ?, role = ?, password_hash = ?, status = ? WHERE username = ?');
+            return $stmt->execute([$email, $name, $role, $hash, $statusValue, $username]);
         }
 
-        $stmt = $pdo->prepare('UPDATE users SET name = ?, role = ?, status = ? WHERE username = ?');
-        return $stmt->execute([$name, $role, $statusValue, $username]);
+        $stmt = $pdo->prepare('UPDATE users SET email = ?, name = ?, role = ?, status = ? WHERE username = ?');
+        return $stmt->execute([$email, $name, $role, $statusValue, $username]);
     }
 
     $rows = users_all();
     foreach ($rows as &$row) {
         if (strcasecmp((string) ($row['username'] ?? ''), $username) === 0) {
+            $row['email'] = $email;
             $row['name'] = $name;
             $row['role'] = $role;
             $row['status'] = $statusValue;

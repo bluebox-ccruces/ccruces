@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once __DIR__ . '/includes/layout.php';
 
@@ -198,6 +198,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'name' => trim((string) ($_POST['name'] ?? '')),
                 'tagline' => trim((string) ($_POST['tagline'] ?? '')),
                 'description' => trim((string) ($_POST['description'] ?? '')),
+                'summary' => trim((string) ($_POST['summary'] ?? '')),
+                'content' => trim((string) ($_POST['content'] ?? '')),
+                'benefits' => trim((string) ($_POST['benefits'] ?? '')),
+                'financial_benefits' => trim((string) ($_POST['financial_benefits'] ?? '')),
+                'roi_note' => trim((string) ($_POST['roi_note'] ?? '')),
+                'video_url' => trim((string) ($_POST['video_url'] ?? '')),
                 'logo' => trim((string) ($_POST['logo'] ?? 'img/Icono BB.png')),
                 'demo_url' => trim((string) ($_POST['demo_url'] ?? '')),
                 'private_url' => trim((string) ($_POST['private_url'] ?? '')),
@@ -218,6 +224,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'name' => trim((string) ($_POST['name'] ?? '')),
                 'tagline' => trim((string) ($_POST['tagline'] ?? '')),
                 'description' => trim((string) ($_POST['description'] ?? '')),
+                'summary' => trim((string) ($_POST['summary'] ?? '')),
+                'content' => trim((string) ($_POST['content'] ?? '')),
+                'benefits' => trim((string) ($_POST['benefits'] ?? '')),
+                'financial_benefits' => trim((string) ($_POST['financial_benefits'] ?? '')),
+                'roi_note' => trim((string) ($_POST['roi_note'] ?? '')),
+                'video_url' => trim((string) ($_POST['video_url'] ?? '')),
                 'logo' => trim((string) ($_POST['logo'] ?? 'img/Icono BB.png')),
                 'demo_url' => trim((string) ($_POST['demo_url'] ?? '')),
                 'private_url' => trim((string) ($_POST['private_url'] ?? '')),
@@ -245,29 +257,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($entity === 'user') {
         if ($action === 'create') {
             $username = trim((string) ($_POST['username'] ?? ''));
+            $email = trim((string) ($_POST['email'] ?? ''));
             $name = trim((string) ($_POST['name'] ?? ''));
             $role = trim((string) ($_POST['role'] ?? 'client'));
             $password = (string) ($_POST['password'] ?? '');
 
-            if (user_create($username, $name, $role, $password)) {
+            if (user_create($username, $email, $name, $role, $password)) {
                 set_flash('success', 'Usuario creado correctamente.');
             } else {
-                set_flash('error', 'No se pudo crear el usuario. Verifica username único y política de contraseña segura.');
+                set_flash('error', 'No se pudo crear el usuario. Verifica username/correo únicos y política de contraseña segura.');
             }
         }
 
         if ($action === 'update') {
             $username = trim((string) ($_POST['username'] ?? ''));
+            $email = trim((string) ($_POST['email'] ?? ''));
             $name = trim((string) ($_POST['name'] ?? ''));
             $role = trim((string) ($_POST['role'] ?? 'client'));
             $status = (int) ($_POST['status'] ?? 1);
             $password = trim((string) ($_POST['password'] ?? ''));
 
             $passwordOrNull = $password === '' ? null : $password;
-            if (user_update($username, $name, $role, $passwordOrNull, $status)) {
+            if (user_update($username, $email, $name, $role, $passwordOrNull, $status)) {
                 set_flash('success', 'Usuario actualizado.');
             } else {
-                set_flash('error', 'No se pudo actualizar el usuario. Verifica la política de contraseña segura.');
+                set_flash('error', 'No se pudo actualizar el usuario. Verifica correo único y política de contraseña segura.');
             }
         }
 
@@ -444,6 +458,13 @@ render_header('Administración', 'admin');
                 </div>
                 <label>Tagline <input type="text" name="tagline" /></label>
                 <label>Descripción <textarea name="description" required></textarea></label>
+                
+                <label>Resumen del proyecto <textarea name="summary"></textarea></label>
+                <label>Contenido del proyecto <textarea name="content"></textarea></label>
+                <label>Beneficios operativos (una línea por beneficio) <textarea name="benefits"></textarea></label>
+                <label>Beneficios financieros (una línea por beneficio) <textarea name="financial_benefits"></textarea></label>
+                <label>Nota de rentabilidad (ROI) <textarea name="roi_note"></textarea></label>
+                <label>URL de video (YouTube) <input type="text" name="video_url" placeholder="https://www.youtube.com/watch?v=..." /></label>
                 <div class="admin-grid-2">
                     <label>Logo <input type="text" name="logo" value="img/Icono BB.png" /></label>
                     <label>Estado <input type="text" name="status" value="Activo" /></label>
@@ -473,6 +494,13 @@ render_header('Administración', 'admin');
                             <label>Tagline <input type="text" name="tagline" value="<?= e((string) ($service['tagline'] ?? '')) ?>" /></label>
                         </div>
                         <label>Descripción <textarea name="description" required><?= e((string) ($service['description'] ?? '')) ?></textarea></label>
+                        
+                        <label>Resumen del proyecto <textarea name="summary"><?= e((string) ($service['summary'] ?? '')) ?></textarea></label>
+                        <label>Contenido del proyecto <textarea name="content"><?= e((string) ($service['content'] ?? '')) ?></textarea></label>
+                        <label>Beneficios operativos (una línea por beneficio) <textarea name="benefits"><?= e((string) ($service['benefits'] ?? '')) ?></textarea></label>
+                        <label>Beneficios financieros (una línea por beneficio) <textarea name="financial_benefits"><?= e((string) ($service['financial_benefits'] ?? '')) ?></textarea></label>
+                        <label>Nota de rentabilidad (ROI) <textarea name="roi_note"><?= e((string) ($service['roi_note'] ?? '')) ?></textarea></label>
+                        <label>URL de video (YouTube) <input type="text" name="video_url" value="<?= e((string) ($service['video_url'] ?? '')) ?>" /></label>
                         <div class="admin-grid-2">
                             <label>Logo <input type="text" name="logo" value="<?= e((string) ($service['logo'] ?? '')) ?>" /></label>
                             <label>Estado <input type="text" name="status" value="<?= e((string) ($service['status'] ?? '')) ?>" /></label>
@@ -512,9 +540,10 @@ render_header('Administración', 'admin');
 
                 <div class="admin-grid-2">
                     <label>Usuario <input type="text" name="username" required /></label>
-                    <label>Nombre <input type="text" name="name" required /></label>
+                    <label>Correo <input type="email" name="email" required /></label>
                 </div>
                 <div class="admin-grid-2">
+                    <label>Nombre <input type="text" name="name" required /></label>
                     <label>Rol
                         <select name="role">
                             <option value="client">Cliente</option>
@@ -541,6 +570,7 @@ render_header('Administración', 'admin');
                         <p class="admin-id">Usuario: <strong><?= e((string) ($user['username'] ?? '')) ?></strong><?= $isCurrent ? ' (actual)' : '' ?></p>
 
                         <div class="admin-grid-2">
+                            <label>Correo <input type="email" name="email" value="<?= e((string) ($user['email'] ?? '')) ?>" required /></label>
                             <label>Nombre <input type="text" name="name" value="<?= e((string) ($user['name'] ?? '')) ?>" required /></label>
                             <label>Rol
                                 <select name="role">
@@ -579,4 +609,6 @@ render_header('Administración', 'admin');
     <?php endif; ?>
 </main>
 <?php render_footer(); ?>
+
+
 

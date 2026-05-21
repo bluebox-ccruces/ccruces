@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once __DIR__ . '/includes/layout.php';
 
@@ -14,16 +14,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Solicitud inválida. Intenta nuevamente.';
     } else {
         $username = trim((string) ($_POST['username'] ?? ''));
+        $email = trim((string) ($_POST['email'] ?? ''));
         $name = trim((string) ($_POST['name'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $passwordConfirm = (string) ($_POST['password_confirm'] ?? '');
 
-        if ($username === '' || $name === '' || $password === '') {
+        if ($username === '' || $email === '' || $name === '' || $password === '') {
             $errors[] = 'Completa todos los campos obligatorios.';
         }
 
         if (!user_username_is_valid($username)) {
             $errors[] = 'El usuario debe tener 3-64 caracteres (letras, números, punto, guion o guion bajo).';
+        }
+        if (!user_email_is_valid($email)) {
+            $errors[] = 'Ingresa un correo electrónico válido.';
         }
 
         foreach (user_password_policy_errors($password) as $passwordError) {
@@ -35,14 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errors)) {
-            $created = user_create($username, $name, 'client', $password);
+            $created = user_create($username, $email, $name, 'client', $password);
             if ($created) {
                 set_flash('success', 'Cuenta creada. Ya puedes iniciar sesión.');
                 header('Location: ' . app_url('login.php?next=blog.php'));
                 exit;
             }
 
-            $errors[] = 'No se pudo crear la cuenta. Verifica si el usuario ya existe.';
+            $errors[] = 'No se pudo crear la cuenta. Verifica si el usuario o correo ya existe.';
         }
     }
 }
@@ -66,6 +70,10 @@ render_header('Crear Cuenta', 'register');
                 <input type="text" name="username" autocomplete="username" required />
             </label>
             <label>
+                Correo electrónico
+                <input type="email" name="email" autocomplete="email" required />
+            </label>
+            <label>
                 Nombre visible
                 <input type="text" name="name" autocomplete="name" required />
             </label>
@@ -86,3 +94,4 @@ render_header('Crear Cuenta', 'register');
     </section>
 </main>
 <?php render_footer(); ?>
+

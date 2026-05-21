@@ -1,8 +1,9 @@
 SET NAMES utf8mb4;
 
-INSERT INTO users (username, name, role, password_hash, status) VALUES
-('ccruces', 'Administrador CCruces', 'admin', '$2y$10$bnOVcnWTaKJiDzRVVszSi.UemM1kmr93aWCc7Nxd7mTQ/j/JD3Mry', 1)
+INSERT INTO users (username, email, name, role, password_hash, status) VALUES
+('ccruces', 'ccruces@ccruces.com', 'Administrador CCruces', 'admin', '$2y$10$bnOVcnWTaKJiDzRVVszSi.UemM1kmr93aWCc7Nxd7mTQ/j/JD3Mry', 1)
 ON DUPLICATE KEY UPDATE
+email = VALUES(email),
 name = VALUES(name),
 role = VALUES(role),
 password_hash = VALUES(password_hash),

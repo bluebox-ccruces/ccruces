@@ -89,11 +89,15 @@
   const financialBenefitsEl = modal.querySelector("[data-service-financial-benefits]");
   const roiEl = modal.querySelector("[data-service-roi-note]");
   const imagesEl = modal.querySelector("[data-service-images]");
-  const demoEl = modal.querySelector("[data-service-demo]");
+  const videoEl = modal.querySelector("[data-service-video]");
+  const videoEmptyEl = modal.querySelector("[data-service-video-empty]");
   const privateEl = modal.querySelector("[data-service-private]");
   const closeEls = modal.querySelectorAll("[data-service-close]");
 
   const closeModal = () => {
+    if (videoEl) {
+      videoEl.src = "";
+    }
     modal.classList.remove("is-open");
     document.body.classList.remove("no-scroll");
     window.setTimeout(() => {
@@ -164,8 +168,12 @@
       });
     }
 
-    if (demoEl) {
-      demoEl.href = payload.demo_url || "#";
+    if (videoEl) {
+      videoEl.src = payload.video_url || "";
+    }
+
+    if (videoEmptyEl) {
+      videoEmptyEl.hidden = Boolean(payload.video_url);
     }
 
     if (privateEl) {
@@ -180,11 +188,7 @@
   };
 
   cards.forEach((card) => {
-    card.addEventListener("click", (event) => {
-      if (event.target.closest("a,button,input,select,textarea,label")) {
-        return;
-      }
-
+    const openFromCard = () => {
       let payload = null;
       try {
         payload = JSON.parse(card.dataset.servicePayload || "{}");
@@ -193,6 +197,13 @@
       }
 
       openModal(payload);
+    };
+
+    card.addEventListener("click", (event) => {
+      if (event.target.closest("a,input,select,textarea,label")) {
+        return;
+      }
+      openFromCard();
     });
 
     card.addEventListener("keydown", (event) => {
@@ -201,14 +212,14 @@
       }
       event.preventDefault();
 
-      let payload = null;
-      try {
-        payload = JSON.parse(card.dataset.servicePayload || "{}");
-      } catch (error) {
-        payload = null;
-      }
+      openFromCard();
+    });
 
-      openModal(payload);
+    card.querySelectorAll("[data-service-open]").forEach((openBtn) => {
+      openBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        openFromCard();
+      });
     });
   });
 

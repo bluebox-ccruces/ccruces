@@ -266,21 +266,16 @@ render_header('Blog', 'blog');
                 $likedByCurrentUser = $currentUser ? post_is_liked_by_user($postId, (string) ($currentUser['username'] ?? '')) : false;
                 $comments = post_comments_for_post($postId);
                 ?>
-                <article id="<?= e($postId) ?>" class="<?= $index === 0 ? 'articulo-destacado' : 'article-panel' ?>">
-                    <header class="<?= $index === 0 ? 'articulo-cabecera' : '' ?>">
+                <article id="<?= e($postId) ?>" class="articulo-destacado">
+                    <header class="articulo-cabecera">
                         <p class="post-meta"><?= e($autor) ?> · <?= e($fecha) ?> · <?= $lectura ?> min de lectura</p>
-                        <?php if ($index === 0): ?>
-                            <h2><?= e($titulo) ?></h2>
+                        <h2><?= e($titulo) ?></h2>
+                        <?php if ($resumen !== ''): ?>
                             <p class="articulo-resumen"><?= e($resumen) ?></p>
-                        <?php else: ?>
-                            <h3><?= e($titulo) ?></h3>
-                            <?php if ($resumen !== ''): ?>
-                                <p class="articulo-resumen"><?= e($resumen) ?></p>
-                            <?php endif; ?>
                         <?php endif; ?>
                     </header>
 
-                    <div class="<?= $index === 0 ? 'articulo-cuerpo' : 'article-body' ?>">
+                    <div class="articulo-cuerpo">
                         <?php if ($primaryImage): ?>
                             <figure class="article-image">
                                 <img

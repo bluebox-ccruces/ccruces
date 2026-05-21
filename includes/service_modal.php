@@ -1,4 +1,22 @@
-<?php
+﻿<?php
+
+function service_video_embed_url(string $rawUrl): string
+{
+    $rawUrl = trim($rawUrl);
+    if ($rawUrl === '') {
+        return '';
+    }
+
+    if (preg_match('~(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/shorts/)([A-Za-z0-9_-]{6,})~i', $rawUrl, $matches)) {
+        return 'https://www.youtube.com/embed/' . $matches[1] . '?rel=0';
+    }
+
+    if (preg_match('~youtube\.com/embed/([A-Za-z0-9_-]{6,})~i', $rawUrl, $matches)) {
+        return 'https://www.youtube.com/embed/' . $matches[1] . '?rel=0';
+    }
+
+    return $rawUrl;
+}
 
 function service_private_entry_url(array $service): string
 {
@@ -12,137 +30,55 @@ function service_private_entry_url(array $service): string
 
 function service_modal_details(array $service): array
 {
-    $id = (string) ($service['id'] ?? '');
+    $splitLines = static function (string $text): array {
+        $lines = preg_split('/\r\n|\r|\n/', trim($text)) ?: [];
+        return array_values(array_filter(array_map('trim', $lines), static fn(string $line): bool => $line !== ''));
+    };
 
-    $defaults = [
-        'summary' => (string) ($service['description'] ?? ''),
-        'content' => 'Este servicio forma parte del ecosistema CCruces Holding y está orientado a mejorar productividad, control y trazabilidad en procesos clave.',
-        'benefits' => [
+    $summary = trim((string) ($service['summary'] ?? ''));
+    $content = trim((string) ($service['content'] ?? ''));
+    $benefitsText = trim((string) ($service['benefits'] ?? ''));
+    $financialBenefitsText = trim((string) ($service['financial_benefits'] ?? ''));
+    $roiNote = trim((string) ($service['roi_note'] ?? ''));
+
+    $payload = [
+        'summary' => $summary !== '' ? $summary : (string) ($service['description'] ?? ''),
+        'content' => $content !== '' ? $content : 'Este servicio forma parte del ecosistema CCruces Holding y está orientado a mejorar productividad, control y trazabilidad en procesos clave.',
+        'video_url' => trim((string) ($service['video_url'] ?? '')),
+        'benefits' => $benefitsText !== '' ? $splitLines($benefitsText) : [
             'Implementación rápida para equipos operativos.',
             'Visibilidad centralizada de indicadores clave.',
             'Escalabilidad por unidades de negocio y sedes.',
         ],
-        'financial_benefits' => [
+        'financial_benefits' => $financialBenefitsText !== '' ? $splitLines($financialBenefitsText) : [
             'Mejor asignación de costos por centro de responsabilidad.',
             'Menor reproceso administrativo por datos dispersos.',
             'Información más confiable para presupuestos y cierres.',
         ],
-        'roi_note' => 'Impacto esperado: control más preciso de costos, mejor disciplina operativa y decisiones financieras con menor incertidumbre.',
+        'roi_note' => $roiNote !== '' ? $roiNote : 'Impacto esperado: control más preciso de costos, mejor disciplina operativa y decisiones financieras con menor incertidumbre.',
         'images' => [
             (string) ($service['logo'] ?? 'img/Icono BB.png'),
         ],
     ];
 
-    $catalog = [
-        'bocado' => [
-            'summary' => 'Bocado digitaliza el control de comedor para eliminar consumos no autorizados y convertir la operación en datos auditables.',
-            'content' => 'Valida identidad del colaborador, registra consumos en tiempo real y consolida reportes por sede, turno y centro de costo para administración y finanzas.',
-            'benefits' => [
-                'Control diario de consumo por usuario, sede y horario.',
-                'Trazabilidad completa para auditoría interna y externa.',
-                'Reducción de tiempos de conciliación entre operación y administración.',
-            ],
-            'financial_benefits' => [
-                'Disminución de pérdidas por consumo no validado y duplicidades.',
-                'Distribución exacta del gasto de comedor por centro de costo.',
-                'Mejor negociación con proveedores al contar con demanda histórica real.',
-            ],
-            'roi_note' => 'Rentabilidad: reduce fugas silenciosas del gasto alimentario y permite recuperar margen operativo en ciclos cortos.',
-            'images' => [
-                'img/Bocado Logo.png',
-            ],
-        ],
-        'conectagh' => [
-            'summary' => 'Conecta GH concentra procesos de talento humano en una sola experiencia digital para elevar productividad y orden documental.',
-            'content' => 'Integra solicitudes, documentos, flujos internos y comunicación con colaboradores para reducir fricción operativa y acelerar tiempos de respuesta.',
-            'benefits' => [
-                'Procesos de RR. HH. estandarizados y medibles.',
-                'Documentación centralizada con acceso por perfil.',
-                'Mayor velocidad en atención de requerimientos internos.',
-            ],
-            'financial_benefits' => [
-                'Menor costo administrativo por automatización de tareas repetitivas.',
-                'Reducción de contingencias por documentos incompletos o fuera de vigencia.',
-                'Mejor control del costo por colaborador en procesos de gestión humana.',
-            ],
-            'roi_note' => 'Rentabilidad: convierte horas administrativas en capacidad productiva y reduce costos ocultos por desorden documental.',
-            'images' => [
-                'img/Logo Gh.png',
-                'img/Imagen app Conecta Gh.jpeg',
-            ],
-        ],
-        'gestionocupacional' => [
-            'summary' => 'Gestión Ocupacional fortalece SST con seguimiento continuo de riesgos, acciones preventivas y evidencia de cumplimiento.',
-            'content' => 'Organiza evaluaciones, alertas, cronogramas y evidencia operativa en un flujo claro para supervisión, cumplimiento y mejora continua.',
-            'benefits' => [
-                'Seguimiento estructurado de planes de seguridad y salud.',
-                'Alertas oportunas para mitigar incidentes recurrentes.',
-                'Trazabilidad documental para auditorías regulatorias.',
-            ],
-            'financial_benefits' => [
-                'Reducción de costos por incidentes, paralizaciones y sanciones evitables.',
-                'Menor gasto legal y administrativo por evidencia incompleta.',
-                'Mejor previsión de CAPEX y OPEX en programas de prevención.',
-            ],
-            'roi_note' => 'Rentabilidad: protege continuidad operativa y reduce la volatilidad financiera asociada a eventos de riesgo.',
-            'images' => [
-                'img/Logo gestion ocupacional.png',
-                'img/app gestion ocupacional.png',
-            ],
-        ],
-        'agrogestor' => [
-            'summary' => 'AgroGestor ordena la operación agrícola en campo con trazabilidad por lote, cuadrilla y jornada.',
-            'content' => 'Registra labores en tiempo real, controla avances diarios y consolida indicadores para planificar mejor recursos, rendimiento y ejecución.',
-            'benefits' => [
-                'Control operativo por lote, labor y responsable.',
-                'Información diaria para tomar decisiones en campaña.',
-                'Coordinación fluida entre campo, planificación y administración.',
-            ],
-            'financial_benefits' => [
-                'Control más fino del costo por hectárea y por labor.',
-                'Reducción de desviaciones de presupuesto durante campaña.',
-                'Mejor rentabilidad por asignación eficiente de mano de obra y recursos.',
-            ],
-            'roi_note' => 'Rentabilidad: mejora el margen agrícola al reducir desperdicio operativo y elevar precisión de costos en campo.',
-            'images' => [
-                'img/Logo AgroGestor.png',
-            ],
-        ],
-        'bluesalesv2' => [
-            'summary' => 'BluesalesV2 impulsa la gestión comercial de arándano con control del pipeline, pedidos y cumplimiento de compromisos.',
-            'content' => 'Centraliza oportunidades, acuerdos y pedidos para conectar la gestión comercial con la operación y sostener crecimiento con disciplina.',
-            'benefits' => [
-                'Seguimiento comercial en tiempo real por cliente y etapa.',
-                'Priorización de oportunidades con mayor probabilidad de cierre.',
-                'Visibilidad del desempeño comercial por canal y ejecutivo.',
-            ],
-            'financial_benefits' => [
-                'Mayor previsibilidad de ingresos y flujo de caja comercial.',
-                'Mejor gestión de descuentos y condiciones para proteger margen.',
-                'Reducción de pérdidas por errores de seguimiento en pedidos.',
-            ],
-            'roi_note' => 'Rentabilidad: mejora conversión comercial y control de margen para sostener crecimiento con ventas más rentables.',
-            'images' => [
-                'img/Icono BB.png',
-            ],
-        ],
-    ];
-
-    $selected = $catalog[$id] ?? [];
-    $payload = array_merge($defaults, $selected);
     $payload['benefits'] = array_values(array_filter((array) ($payload['benefits'] ?? []), static fn($item): bool => is_string($item) && trim($item) !== ''));
     $payload['financial_benefits'] = array_values(array_filter((array) ($payload['financial_benefits'] ?? []), static fn($item): bool => is_string($item) && trim($item) !== ''));
     $payload['images'] = array_values(array_filter((array) ($payload['images'] ?? []), static fn($item): bool => is_string($item) && trim($item) !== ''));
+    $payload['video_url'] = service_video_embed_url((string) ($payload['video_url'] ?? ''));
 
     return $payload;
 }
-
 function service_modal_payload(array $service): array
 {
     $details = service_modal_details($service);
     $demoUrlRaw = (string) ($service['demo_url'] ?? '');
     $demoUrl = str_starts_with($demoUrlRaw, 'http') ? $demoUrlRaw : app_url($demoUrlRaw);
     $privateUrl = service_private_entry_url($service);
+    $videoUrlRaw = (string) ($details['video_url'] ?? '');
+    if ($videoUrlRaw === '' && str_starts_with($demoUrlRaw, 'http')) {
+        $videoUrlRaw = $demoUrlRaw;
+    }
+    $videoEmbedUrl = service_video_embed_url($videoUrlRaw);
 
     $images = [];
     foreach ((array) ($details['images'] ?? []) as $img) {
@@ -164,6 +100,7 @@ function service_modal_payload(array $service): array
         'financial_benefits' => (array) ($details['financial_benefits'] ?? []),
         'roi_note' => (string) ($details['roi_note'] ?? ''),
         'images' => $images,
+        'video_url' => $videoEmbedUrl,
         'demo_url' => $demoUrl,
         'private_url' => $privateUrl,
     ];
@@ -191,13 +128,27 @@ function render_service_modal_shell(): void
                     <ul data-service-financial-benefits></ul>
                     <p class="service-modal__roi" data-service-roi-note></p>
                     <div class="service-modal__actions">
-                        <a class="btn-mini" href="#" data-service-demo>Ver</a>
                         <a class="btn-mini main" href="#" data-service-private>Ingresar</a>
                     </div>
                 </div>
-                <div class="service-modal__media" data-service-images></div>
+                <div class="service-modal__media">
+                    <div class="service-modal__video-wrap">
+                        <iframe
+                            title="Video del servicio"
+                            data-service-video
+                            loading="lazy"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen
+                        ></iframe>
+                        <p class="service-modal__video-empty" data-service-video-empty hidden>
+                            Este servicio aÃºn no tiene video cargado.
+                        </p>
+                    </div>
+                    <div data-service-images></div>
+                </div>
             </div>
         </article>
     </div>
     <?php
 }
+

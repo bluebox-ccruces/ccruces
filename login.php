@@ -3,8 +3,8 @@
 require_once __DIR__ . '/includes/layout.php';
 
 $errors = [];
-$next = (string) ($_GET['next'] ?? 'panel.php');
-$allowedNext = ['panel.php', 'servicios.php', 'index.php', 'blog.php', 'admin.php', 'acceso.php'];
+$next = (string) ($_GET['next'] ?? 'index.php');
+$allowedNext = ['index.php', 'panel.php', 'servicios.php', 'blog.php', 'admin.php', 'acceso.php'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf($_POST['csrf'] ?? null)) {
@@ -12,9 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $username = trim((string) ($_POST['username'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
-        $next = (string) ($_POST['next'] ?? 'panel.php');
+        $next = (string) ($_POST['next'] ?? 'index.php');
         if (!in_array($next, $allowedNext, true)) {
-            $next = 'panel.php';
+            $next = 'index.php';
         }
 
         $user = find_user($username);
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if (!in_array($next, $allowedNext, true)) {
-    $next = 'panel.php';
+    $next = 'index.php';
 }
 
 render_header('Ingresar', 'login');

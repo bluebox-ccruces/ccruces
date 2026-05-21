@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once __DIR__ . '/includes/layout.php';
 
@@ -33,7 +33,7 @@ render_header('Servicios', 'services');
                     <p class="service-card__description"><?= e((string) ($service['description'] ?? '')) ?></p>
                 </div>
                 <div class="row-actions service-actions">
-                    <a class="btn-mini" href="<?= e((string) ($modalPayload['demo_url'] ?? '#')) ?>">Información</a>
+                    <button class="btn-mini" type="button" data-service-open>Información</button>
                     <a class="btn-mini main" href="<?= e(service_private_entry_url($service)) ?>">Ingresar</a>
                 </div>
             </article>

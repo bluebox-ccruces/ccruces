@@ -19,6 +19,8 @@
    - `pass`
 4. Importa `database/schema.sql` desde phpMyAdmin.
    - Si ya tienes una instalación previa, importa `database/add-post-images.sql` para habilitar imágenes en publicaciones.
+   - Para administrar resumen/beneficios/video de servicios desde admin, importa también `database/add-service-modal-fields.sql`.
+   - Para registro con correo obligatorio, importa `database/add-users-email.sql`.
 5. Importa `database/seed.sql` desde phpMyAdmin para cargar datos iniciales.
 6. Importa `database/ensure-utf8mb4.sql` para asegurar soporte de caracteres especiales (á, é, ñ, emojis).
 7. Opcional por consola SSH: ejecuta `php scripts/sync-json-to-db.php` para sincronizar desde JSON.

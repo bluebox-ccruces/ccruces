@@ -4,7 +4,7 @@ function services_all(): array
 {
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->query('SELECT id, name, tagline, description, logo, demo_url, private_url, status, sort_order FROM services ORDER BY sort_order ASC, name ASC');
+        $stmt = $pdo->query('SELECT id, name, tagline, description, summary, content, benefits, financial_benefits, roi_note, video_url, logo, demo_url, private_url, status, sort_order FROM services ORDER BY sort_order ASC, name ASC');
         return $stmt->fetchAll();
     }
 
@@ -16,7 +16,7 @@ function service_by_id(string $id): ?array
 {
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('SELECT id, name, tagline, description, logo, demo_url, private_url, status, sort_order FROM services WHERE id = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, name, tagline, description, summary, content, benefits, financial_benefits, roi_note, video_url, logo, demo_url, private_url, status, sort_order FROM services WHERE id = ? LIMIT 1');
         $stmt->execute([$id]);
         $service = $stmt->fetch();
         return $service ?: null;
@@ -45,6 +45,12 @@ function service_create(array $data): bool
         'name' => $name,
         'tagline' => trim((string) ($data['tagline'] ?? '')),
         'description' => trim((string) ($data['description'] ?? '')),
+        'summary' => trim((string) ($data['summary'] ?? '')),
+        'content' => trim((string) ($data['content'] ?? '')),
+        'benefits' => trim((string) ($data['benefits'] ?? '')),
+        'financial_benefits' => trim((string) ($data['financial_benefits'] ?? '')),
+        'roi_note' => trim((string) ($data['roi_note'] ?? '')),
+        'video_url' => trim((string) ($data['video_url'] ?? '')),
         'logo' => trim((string) ($data['logo'] ?? 'img/Icono BB.png')),
         'demo_url' => trim((string) ($data['demo_url'] ?? '')),
         'private_url' => trim((string) ($data['private_url'] ?? '')),
@@ -54,12 +60,18 @@ function service_create(array $data): bool
 
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('INSERT INTO services (id, name, tagline, description, logo, demo_url, private_url, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt = $pdo->prepare('INSERT INTO services (id, name, tagline, description, summary, content, benefits, financial_benefits, roi_note, video_url, logo, demo_url, private_url, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         return $stmt->execute([
             $payload['id'],
             $payload['name'],
             $payload['tagline'],
             $payload['description'],
+            $payload['summary'],
+            $payload['content'],
+            $payload['benefits'],
+            $payload['financial_benefits'],
+            $payload['roi_note'],
+            $payload['video_url'],
             $payload['logo'],
             $payload['demo_url'],
             $payload['private_url'],
@@ -84,6 +96,12 @@ function service_update(string $id, array $data): bool
         'name' => trim((string) ($data['name'] ?? ($existing['name'] ?? ''))),
         'tagline' => trim((string) ($data['tagline'] ?? ($existing['tagline'] ?? ''))),
         'description' => trim((string) ($data['description'] ?? ($existing['description'] ?? ''))),
+        'summary' => trim((string) ($data['summary'] ?? ($existing['summary'] ?? ''))),
+        'content' => trim((string) ($data['content'] ?? ($existing['content'] ?? ''))),
+        'benefits' => trim((string) ($data['benefits'] ?? ($existing['benefits'] ?? ''))),
+        'financial_benefits' => trim((string) ($data['financial_benefits'] ?? ($existing['financial_benefits'] ?? ''))),
+        'roi_note' => trim((string) ($data['roi_note'] ?? ($existing['roi_note'] ?? ''))),
+        'video_url' => trim((string) ($data['video_url'] ?? ($existing['video_url'] ?? ''))),
         'logo' => trim((string) ($data['logo'] ?? ($existing['logo'] ?? 'img/Icono BB.png'))),
         'demo_url' => trim((string) ($data['demo_url'] ?? ($existing['demo_url'] ?? ''))),
         'private_url' => trim((string) ($data['private_url'] ?? ($existing['private_url'] ?? ''))),
@@ -97,11 +115,17 @@ function service_update(string $id, array $data): bool
 
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('UPDATE services SET name = ?, tagline = ?, description = ?, logo = ?, demo_url = ?, private_url = ?, status = ?, sort_order = ? WHERE id = ?');
+        $stmt = $pdo->prepare('UPDATE services SET name = ?, tagline = ?, description = ?, summary = ?, content = ?, benefits = ?, financial_benefits = ?, roi_note = ?, video_url = ?, logo = ?, demo_url = ?, private_url = ?, status = ?, sort_order = ? WHERE id = ?');
         return $stmt->execute([
             $payload['name'],
             $payload['tagline'],
             $payload['description'],
+            $payload['summary'],
+            $payload['content'],
+            $payload['benefits'],
+            $payload['financial_benefits'],
+            $payload['roi_note'],
+            $payload['video_url'],
             $payload['logo'],
             $payload['demo_url'],
             $payload['private_url'],

@@ -56,7 +56,7 @@ render_header('Inicio', 'home');
                             <h3><?= e((string) ($service['name'] ?? 'Servicio')) ?></h3>
                             <p><?= e((string) ($service['description'] ?? '')) ?></p>
                             <div class="row-actions service-actions">
-                                <a class="btn-mini" href="<?= e((string) ($modalPayload['demo_url'] ?? '#')) ?>">Información</a>
+                                <button class="btn-mini" type="button" data-service-open>Información</button>
                                 <a class="btn-mini main" href="<?= e(service_private_entry_url($service)) ?>">Ingresar</a>
                             </div>
                         </article>
@@ -70,12 +70,16 @@ render_header('Inicio', 'home');
     <section class="section wrap">
         <h2>Últimas publicaciones</h2>
         <p class="lead">Tu blog personal listo para construir marca y comunicar avances.</p>
-        <div class="grid">
+        <div class="latest-posts-grid">
             <?php foreach ($featuredPosts as $post): ?>
-                <article class="post">
-                    <h3><?= e((string) ($post['title'] ?? 'Sin tÃ­tulo')) ?></h3>
-                    <small><?= e((string) ($post['author'] ?? 'Autor')) ?> · <?= e((string) ($post['published_at'] ?? '')) ?></small>
-                    <p><?= e((string) ($post['excerpt'] ?? '')) ?></p>
+                <article class="articulo-destacado latest-post-card">
+                    <header class="articulo-cabecera">
+                        <p class="post-meta"><?= e((string) ($post['author'] ?? 'Autor')) ?> · <?= e((string) ($post['published_at'] ?? '')) ?></p>
+                        <h3><?= e((string) ($post['title'] ?? 'Sin tÃ­tulo')) ?></h3>
+                    </header>
+                    <div class="articulo-cuerpo">
+                        <p><?= e((string) ($post['excerpt'] ?? '')) ?></p>
+                    </div>
                 </article>
             <?php endforeach; ?>
         </div>
