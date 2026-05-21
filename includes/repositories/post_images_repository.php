@@ -1,5 +1,61 @@
 <?php
 
+function post_image_path_normalize(string $imagePath): string
+{
+    $normalized = str_replace('\\', '/', trim($imagePath));
+    if ($normalized === '') {
+        return '';
+    }
+
+    if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $normalized) === 1) {
+        return $normalized;
+    }
+
+    $normalized = preg_replace('#^(?:\./)+#', '', $normalized) ?? $normalized;
+    $normalized = ltrim($normalized, '/');
+    if ($normalized === '') {
+        return '';
+    }
+
+    if (str_starts_with($normalized, 'img/posts/')) {
+        return $normalized;
+    }
+
+    if (str_starts_with($normalized, 'posts/')) {
+        return 'img/' . $normalized;
+    }
+
+    if (!str_contains($normalized, '/')) {
+        return 'img/posts/' . $normalized;
+    }
+
+    return $normalized;
+}
+
+function post_image_public_url(string $imagePath): string
+{
+    $normalized = post_image_path_normalize($imagePath);
+    if ($normalized === '') {
+        return '';
+    }
+
+    if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $normalized) === 1) {
+        return $normalized;
+    }
+
+    return app_url($normalized);
+}
+
+function post_images_normalize_rows(array $rows): array
+{
+    foreach ($rows as &$row) {
+        $row['image_path'] = post_image_path_normalize((string) ($row['image_path'] ?? ''));
+    }
+    unset($row);
+
+    return $rows;
+}
+
 function post_images_for_post(string $postId): array
 {
     if ($postId === '') {
@@ -16,7 +72,7 @@ function post_images_for_post(string $postId): array
                  ORDER BY is_primary DESC, sort_order ASC, id ASC'
             );
             $stmt->execute([$postId]);
-            return $stmt->fetchAll();
+            return post_images_normalize_rows($stmt->fetchAll());
         } catch (Throwable) {
             // Fall back to JSON when table is unavailable.
         }
@@ -28,6 +84,7 @@ function post_images_for_post(string $postId): array
     }
 
     $filtered = array_values(array_filter($rows, static fn(array $row): bool => (string) ($row['post_id'] ?? '') === $postId));
+    $filtered = post_images_normalize_rows($filtered);
     usort($filtered, static function (array $a, array $b): int {
         $primaryCmp = ((int) ($b['is_primary'] ?? 0)) <=> ((int) ($a['is_primary'] ?? 0));
         if ($primaryCmp !== 0) {
@@ -73,6 +130,7 @@ function post_images_map_for_posts(array $postIds): array
                 if (!isset($map[$postId])) {
                     $map[$postId] = [];
                 }
+                $row['image_path'] = post_image_path_normalize((string) ($row['image_path'] ?? ''));
                 $map[$postId][] = $row;
             }
             return $map;
@@ -89,6 +147,7 @@ function post_images_map_for_posts(array $postIds): array
     foreach ($rows as $row) {
         $postId = (string) ($row['post_id'] ?? '');
         if (isset($map[$postId])) {
+            $row['image_path'] = post_image_path_normalize((string) ($row['image_path'] ?? ''));
             $map[$postId][] = $row;
         }
     }
@@ -113,6 +172,7 @@ function post_images_map_for_posts(array $postIds): array
 
 function post_image_create(string $postId, string $imagePath, string $altText = '', int $sortOrder = 0, int $isPrimary = 0): bool
 {
+    $imagePath = post_image_path_normalize($imagePath);
     if ($postId === '' || $imagePath === '') {
         return false;
     }

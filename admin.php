@@ -398,7 +398,7 @@ render_header('Administración', 'admin');
                                     $altText = (string) ($image['alt_text'] ?? '');
                                     ?>
                                     <article class="admin-image-card">
-                                        <img src="<?= e(app_url($imagePath)) ?>" alt="<?= e($altText !== '' ? $altText : 'Imagen de publicación') ?>" />
+                                        <img src="<?= e(post_image_public_url($imagePath)) ?>" alt="<?= e($altText !== '' ? $altText : 'Imagen de publicación') ?>" />
                                         <p class="admin-image-meta"><?= $isPrimary ? 'Principal' : 'Secundaria' ?> · Orden <?= (int) ($image['sort_order'] ?? 0) ?></p>
                                         <?php if ($altText !== ''): ?>
                                             <p class="admin-image-alt"><?= e($altText) ?></p>

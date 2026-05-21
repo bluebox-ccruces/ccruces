@@ -279,7 +279,7 @@ render_header('Blog', 'blog');
                         <?php if ($primaryImage): ?>
                             <figure class="article-image">
                                 <img
-                                    src="<?= e(app_url((string) ($primaryImage['image_path'] ?? ''))) ?>"
+                                    src="<?= e(post_image_public_url((string) ($primaryImage['image_path'] ?? ''))) ?>"
                                     alt="<?= e((string) ($primaryImage['alt_text'] ?? $titulo)) ?>"
                                     loading="lazy"
                                 />
