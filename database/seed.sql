@@ -10,7 +10,7 @@ password_hash = VALUES(password_hash),
 status = VALUES(status);
 
 INSERT INTO services (id, name, tagline, description, logo, demo_url, private_url, status, sort_order) VALUES
-('bocado', 'Bocado', 'Control inteligente de comedor', 'Gestiona raciones, elimina fraude y mejora la operación del comedor empresarial en tiempo real.', 'img/Bocado Logo.png', 'demo.php?servicio=bocado', 'https://app.ccruces.com/bocado', 'Demostración abierta + acceso privado', 1),
+('bocado', 'Bocado', 'Control inteligente de comedor', 'Gestiona raciones, elimina fraude y mejora la operación del comedor empresarial en tiempo real.', 'img/Bocado Logo.png', 'demo.php?servicio=bocado', 'https://bocado.ccruces.com/login', 'Demostración abierta + acceso privado', 1),
 ('conectagh', 'Conecta GH', 'Experiencia digital de RR. HH.', 'Centraliza comunicaciones, documentos y procesos de talento humano en una sola plataforma.', 'img/Logo Gh.png', 'demo.php?servicio=conectagh', 'https://rrhh.bluebox-enterprise.com/login', 'Demostración abierta + acceso privado', 2),
 ('gestionocupacional', 'Gestión Ocupacional', 'SST y cumplimiento normativo', 'Monitorea riesgos laborales y automatiza acciones de seguridad y salud en el trabajo.', 'img/Logo gestion ocupacional.png', 'demo.php?servicio=gestionocupacional', 'https://topico.bluebox-enterprise.com/admin/login', 'Demostración abierta + acceso privado', 3),
 ('agrogestor', 'AgroGestor', 'Gestión operativa agrícola', 'Solución para registrar labores de campo, organizar producción y dar trazabilidad operativa a equipos agrícolas.', 'img/Logo AgroGestor.png', 'demo.php?servicio=agrogestor', 'https://tareos.blueboxsolutions.tech/admin/login', 'Demostración en evolución + acceso privado', 4),

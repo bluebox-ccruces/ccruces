@@ -78,6 +78,11 @@ function service_video_embed_url(string $rawUrl): string
 
 function service_private_entry_url(array $service): string
 {
+    $serviceId = strtolower(trim((string) ($service['id'] ?? '')));
+    if ($serviceId === 'bocado') {
+        return 'https://bocado.ccruces.com/login';
+    }
+
     $privateUrlRaw = trim((string) ($service['private_url'] ?? ''));
     if ($privateUrlRaw !== '') {
         return str_starts_with($privateUrlRaw, 'http') ? $privateUrlRaw : app_url($privateUrlRaw);

@@ -12,6 +12,7 @@ if (!$service) {
 }
 
 require_login();
+$privateEntryUrl = service_private_entry_url($service);
 
 render_header('Acceso a servicio', 'services');
 ?>
@@ -23,10 +24,10 @@ render_header('Acceso a servicio', 'services');
         <p><strong>Modo actual:</strong> Acceso autenticado</p>
         <p>
             Este enlace debe apuntar al entorno productivo de tu servicio.
-            Ahora está configurado como: <code><?= e((string) ($service['private_url'] ?? '')) ?></code>
+            Ahora esta configurado como: <code><?= e($privateEntryUrl) ?></code>
         </p>
         <div class="row-actions">
-            <a class="btn-mini main" href="<?= e((string) ($service['private_url'] ?? '#')) ?>" target="_blank" rel="noopener noreferrer">Abrir plataforma</a>
+            <a class="btn-mini main" href="<?= e($privateEntryUrl) ?>" target="_blank" rel="noopener noreferrer">Abrir plataforma</a>
             <a class="btn-mini" href="<?= e(app_url('servicios.php')) ?>">Volver a servicios</a>
         </div>
     </article>

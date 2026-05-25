@@ -6,7 +6,7 @@
     "description": "Gestiona raciones, elimina fraude y mejora la operación del comedor empresarial en tiempo real.",
     "logo": "img/Bocado Logo.png",
     "demo_url": "demo.php?servicio=bocado",
-    "private_url": "https://app.ccruces.com/bocado",
+    "private_url": "https://bocado.ccruces.com/login",
     "status": "Demostración abierta + acceso privado"
   },
   {
