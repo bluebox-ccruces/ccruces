@@ -78,6 +78,11 @@ function service_video_embed_url(string $rawUrl): string
 
 function service_private_entry_url(array $service): string
 {
+    return app_url('acceso.php?servicio=' . urlencode((string) ($service['id'] ?? '')));
+}
+
+function service_private_platform_url(array $service): string
+{
     $serviceId = strtolower(trim((string) ($service['id'] ?? '')));
     if ($serviceId === 'bocado') {
         return 'https://bocado.ccruces.com/login';
@@ -88,7 +93,7 @@ function service_private_entry_url(array $service): string
         return str_starts_with($privateUrlRaw, 'http') ? $privateUrlRaw : app_url($privateUrlRaw);
     }
 
-    return app_url('acceso.php?servicio=' . urlencode((string) ($service['id'] ?? '')));
+    return '';
 }
 
 function service_modal_details(array $service): array

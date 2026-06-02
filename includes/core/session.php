@@ -45,7 +45,16 @@ function is_logged_in(): bool
 function is_admin(): bool
 {
     $user = current_user();
-    return $user !== null && (($user['role'] ?? '') === 'admin');
+    if ($user === null) {
+        return false;
+    }
+
+    if (($user['role'] ?? '') === 'admin') {
+        return true;
+    }
+
+    return function_exists('user_has_permission')
+        && user_has_permission((string) ($user['username'] ?? ''), 'holding.users.manage');
 }
 
 function require_login(): void

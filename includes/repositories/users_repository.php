@@ -8,7 +8,8 @@ function users_all(): array
     $pdo = db();
     if ($pdo) {
         try {
-            $stmt = $pdo->query('SELECT username, email, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users ORDER BY id ASC');
+            $stmt = $pdo->prepare('SELECT id, company_id, username, email, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users WHERE company_id = ? ORDER BY id ASC');
+            $stmt->execute([APP_COMPANY_ID]);
             return $stmt->fetchAll();
         } catch (Throwable) {
             // Backward compatibility for schemas without hardening columns yet.
@@ -26,8 +27,8 @@ function find_user(string $username): ?array
     $pdo = db();
     if ($pdo) {
         try {
-            $stmt = $pdo->prepare('SELECT username, email, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users WHERE LOWER(username)=LOWER(?) LIMIT 1');
-            $stmt->execute([$username]);
+            $stmt = $pdo->prepare('SELECT id, company_id, username, email, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users WHERE LOWER(username)=LOWER(?) AND company_id = ? LIMIT 1');
+            $stmt->execute([$username, APP_COMPANY_ID]);
             $user = $stmt->fetch();
             return $user ?: null;
         } catch (Throwable) {
@@ -68,8 +69,8 @@ function find_user_by_email(string $email): ?array
     $pdo = db();
     if ($pdo) {
         try {
-            $stmt = $pdo->prepare('SELECT username, email, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users WHERE LOWER(email)=LOWER(?) LIMIT 1');
-            $stmt->execute([$email]);
+            $stmt = $pdo->prepare('SELECT id, company_id, username, email, name, role, password_hash, status, last_login_at, failed_login_attempts, locked_until FROM users WHERE LOWER(email)=LOWER(?) AND company_id = ? LIMIT 1');
+            $stmt->execute([$email, APP_COMPANY_ID]);
             $user = $stmt->fetch();
             return $user ?: null;
         } catch (Throwable) {
@@ -147,8 +148,8 @@ function user_record_successful_login(string $username): void
 
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('UPDATE users SET failed_login_attempts = 0, locked_until = NULL, last_login_at = NOW() WHERE username = ?');
-        $stmt->execute([$username]);
+        $stmt = $pdo->prepare('UPDATE users SET failed_login_attempts = 0, locked_until = NULL, last_login_at = NOW() WHERE username = ? AND company_id = ?');
+        $stmt->execute([$username, APP_COMPANY_ID]);
         return;
     }
 
@@ -187,13 +188,13 @@ function user_record_failed_login(string $username): void
     $pdo = db();
     if ($pdo) {
         if ($lockedUntil !== null) {
-            $stmt = $pdo->prepare('UPDATE users SET failed_login_attempts = ?, locked_until = ? WHERE username = ?');
-            $stmt->execute([$failedAttempts, $lockedUntil, $username]);
+            $stmt = $pdo->prepare('UPDATE users SET failed_login_attempts = ?, locked_until = ? WHERE username = ? AND company_id = ?');
+            $stmt->execute([$failedAttempts, $lockedUntil, $username, APP_COMPANY_ID]);
             return;
         }
 
-        $stmt = $pdo->prepare('UPDATE users SET failed_login_attempts = ?, locked_until = NULL WHERE username = ?');
-        $stmt->execute([$failedAttempts, $username]);
+        $stmt = $pdo->prepare('UPDATE users SET failed_login_attempts = ?, locked_until = NULL WHERE username = ? AND company_id = ?');
+        $stmt->execute([$failedAttempts, $username, APP_COMPANY_ID]);
         return;
     }
 
@@ -239,8 +240,8 @@ function user_create(string $username, string $email, string $name, string $role
     $pdo = db();
 
     if ($pdo) {
-        $stmt = $pdo->prepare('INSERT INTO users (username, email, name, role, password_hash, status) VALUES (?, ?, ?, ?, ?, 1)');
-        return $stmt->execute([$username, $email, $name, $role, $hash]);
+        $stmt = $pdo->prepare('INSERT INTO users (company_id, username, email, name, role, password_hash, status) VALUES (?, ?, ?, ?, ?, ?, 1)');
+        return $stmt->execute([APP_COMPANY_ID, $username, $email, $name, $role, $hash]);
     }
 
     $rows = users_all();
@@ -288,12 +289,12 @@ function user_update(string $username, string $email, string $name, string $role
     if ($pdo) {
         if ($password !== null && $password !== '') {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare('UPDATE users SET email = ?, name = ?, role = ?, password_hash = ?, status = ? WHERE username = ?');
-            return $stmt->execute([$email, $name, $role, $hash, $statusValue, $username]);
+            $stmt = $pdo->prepare('UPDATE users SET email = ?, name = ?, role = ?, password_hash = ?, status = ? WHERE username = ? AND company_id = ?');
+            return $stmt->execute([$email, $name, $role, $hash, $statusValue, $username, APP_COMPANY_ID]);
         }
 
-        $stmt = $pdo->prepare('UPDATE users SET email = ?, name = ?, role = ?, status = ? WHERE username = ?');
-        return $stmt->execute([$email, $name, $role, $statusValue, $username]);
+        $stmt = $pdo->prepare('UPDATE users SET email = ?, name = ?, role = ?, status = ? WHERE username = ? AND company_id = ?');
+        return $stmt->execute([$email, $name, $role, $statusValue, $username, APP_COMPANY_ID]);
     }
 
     $rows = users_all();
@@ -321,8 +322,8 @@ function user_delete(string $username): bool
 
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('DELETE FROM users WHERE username = ?');
-        return $stmt->execute([$username]);
+        $stmt = $pdo->prepare('DELETE FROM users WHERE username = ? AND company_id = ?');
+        return $stmt->execute([$username, APP_COMPANY_ID]);
     }
 
     $rows = array_values(array_filter(users_all(), static fn(array $user): bool => strcasecmp((string) ($user['username'] ?? ''), $username) !== 0));

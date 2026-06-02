@@ -5,7 +5,13 @@ function posts_all(string $query = ''): array
     $pdo = db();
     if ($pdo) {
         if ($query === '') {
-            $stmt = $pdo->query('SELECT id, title, excerpt, content, author, published_at FROM posts ORDER BY published_at DESC, created_at DESC');
+            $stmt = $pdo->prepare(
+                'SELECT id, title, excerpt, content, author, published_at
+                 FROM posts
+                 WHERE company_id = ? AND is_published = 1 AND deleted_at IS NULL
+                 ORDER BY published_at DESC, created_at DESC'
+            );
+            $stmt->execute([APP_COMPANY_ID]);
             return $stmt->fetchAll();
         }
 
@@ -13,10 +19,13 @@ function posts_all(string $query = ''): array
             $stmt = $pdo->prepare(
                 'SELECT id, title, excerpt, content, author, published_at
                  FROM posts
-                 WHERE MATCH(title, excerpt, content) AGAINST (? IN NATURAL LANGUAGE MODE)
+                 WHERE company_id = ?
+                   AND is_published = 1
+                   AND deleted_at IS NULL
+                   AND MATCH(title, excerpt, content) AGAINST (? IN NATURAL LANGUAGE MODE)
                  ORDER BY published_at DESC, created_at DESC'
             );
-            $stmt->execute([$query]);
+            $stmt->execute([APP_COMPANY_ID, $query]);
             $rows = $stmt->fetchAll();
             if (!empty($rows)) {
                 return $rows;
@@ -29,10 +38,13 @@ function posts_all(string $query = ''): array
         $stmt = $pdo->prepare(
             'SELECT id, title, excerpt, content, author, published_at
              FROM posts
-             WHERE title LIKE ? OR excerpt LIKE ? OR content LIKE ?
+             WHERE company_id = ?
+               AND is_published = 1
+               AND deleted_at IS NULL
+               AND (title LIKE ? OR excerpt LIKE ? OR content LIKE ?)
              ORDER BY published_at DESC, created_at DESC'
         );
-        $stmt->execute([$like, $like, $like]);
+        $stmt->execute([APP_COMPANY_ID, $like, $like, $like]);
         return $stmt->fetchAll();
     }
 
@@ -61,8 +73,8 @@ function post_by_id(string $id): ?array
 {
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('SELECT id, title, excerpt, content, author, published_at FROM posts WHERE id = ? LIMIT 1');
-        $stmt->execute([$id]);
+        $stmt = $pdo->prepare('SELECT id, title, excerpt, content, author, published_at FROM posts WHERE id = ? AND company_id = ? AND deleted_at IS NULL LIMIT 1');
+        $stmt->execute([$id, APP_COMPANY_ID]);
         $row = $stmt->fetch();
         return $row ?: null;
     }
@@ -82,8 +94,8 @@ function post_create(string $title, string $excerpt, string $content, string $au
     $postId = 'post-' . bin2hex(random_bytes(4));
 
     if ($pdo) {
-        $stmt = $pdo->prepare('INSERT INTO posts (id, title, excerpt, content, author, published_at) VALUES (?, ?, ?, ?, ?, ?)');
-        return $stmt->execute([$postId, $title, $excerpt, $content, $author, date('Y-m-d')]);
+        $stmt = $pdo->prepare('INSERT INTO posts (id, company_id, site_id, title, excerpt, content, author, published_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        return $stmt->execute([$postId, APP_COMPANY_ID, 'site-ccruces-web', $title, $excerpt, $content, $author, date('Y-m-d')]);
     }
 
     $posts = posts_all();
@@ -107,8 +119,8 @@ function post_update(string $id, string $title, string $excerpt, string $content
 
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('UPDATE posts SET title = ?, excerpt = ?, content = ?, author = ?, published_at = ? WHERE id = ?');
-        return $stmt->execute([$title, $excerpt, $content, $author, $publishedAt, $id]);
+        $stmt = $pdo->prepare('UPDATE posts SET title = ?, excerpt = ?, content = ?, author = ?, published_at = ? WHERE id = ? AND company_id = ?');
+        return $stmt->execute([$title, $excerpt, $content, $author, $publishedAt, $id, APP_COMPANY_ID]);
     }
 
     $posts = posts_all();
@@ -136,8 +148,8 @@ function post_delete(string $id): bool
 
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('DELETE FROM posts WHERE id = ?');
-        return $stmt->execute([$id]);
+        $stmt = $pdo->prepare('UPDATE posts SET deleted_at = NOW(), is_published = 0 WHERE id = ? AND company_id = ?');
+        return $stmt->execute([$id, APP_COMPANY_ID]);
     }
 
     $posts = array_values(array_filter(posts_all(), static fn(array $post): bool => ($post['id'] ?? '') !== $id));

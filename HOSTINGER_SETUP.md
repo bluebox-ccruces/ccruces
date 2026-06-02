@@ -1,57 +1,95 @@
-# Publicación en Hostinger (ccruces.com)
+# Publicacion desde cero en Hostinger (ccruces.com)
 
 ## 1) Subida a `public_html`
+
 - Sube todo el contenido del proyecto al directorio `public_html`.
-- Mantén la estructura `includes/`, `database/`, `scripts/`, `data/`, `assets/`, `img/` y los archivos `.php` en raíz.
+- Manten la estructura `includes/`, `database/`, `scripts/`, `data/`, `assets/`, `img/` y los archivos `.php` en raiz.
 
 ## 2) PHP
-- Esta versión requiere PHP 8.0+.
+
+- Esta version requiere PHP 8.0+.
 - Recomendado: PHP 8.1 o superior en `hPanel > Advanced > PHP Configuration`.
 
-## 3) Base de datos MySQL (recomendado para productivo)
-1. Crea una base de datos MySQL en Hostinger.
-2. Crea usuario y contraseña para la base.
-3. Edita `includes/config.php` con credenciales reales:
+## 3) Base de datos MySQL central
+
+1. Crea una base de datos MySQL en Hostinger para el holding.
+   - Nombre sugerido: `ccruces_holding`
+   - Hostinger normalmente agregara un prefijo, por ejemplo `uXXXX_ccruces_holding`.
+2. Crea usuario y contrasena para la base.
+3. En Hostinger, crea `includes/config.local.php` copiando la plantilla `includes/config.local.example.php` y completa las credenciales reales:
    - `host`
    - `port`
    - `name`
    - `user`
    - `pass`
-4. Importa `database/schema.sql` desde phpMyAdmin.
-   - Si ya tienes una instalación previa, importa `database/add-post-images.sql` para habilitar imágenes en publicaciones.
-   - Para administrar resumen/beneficios/video de servicios desde admin, importa también `database/add-service-modal-fields.sql`.
-   - Para registro con correo obligatorio, importa `database/add-users-email.sql`.
-5. Importa `database/seed.sql` desde phpMyAdmin para cargar datos iniciales.
-6. Importa `database/ensure-utf8mb4.sql` para asegurar soporte de caracteres especiales (á, é, ñ, emojis).
-7. Opcional por consola SSH: ejecuta `php scripts/sync-json-to-db.php` para sincronizar desde JSON.
-8. Si detectas textos dañados (`Ã`, `Â`), ejecuta `database/fix-mojibake-prod.sql` y luego reimporta `database/seed.sql`.
+4. Para una base nueva, importa `database/schema.sql` desde phpMyAdmin.
+5. Importa `database/seed.sql` para cargar datos iniciales y contenido demo del holding, Bocado y BlueSales.
+6. Importa `database/ensure-utf8mb4.sql` para asegurar soporte de caracteres especiales.
 
-## 4) Permisos
+No importes `database/add-post-images.sql`, `database/add-service-modal-fields.sql` ni `database/add-users-email.sql` en una base nueva. Esas columnas ya vienen en `schema.sql`. Usa esos archivos `add-*` solo si actualizas una base antigua.
+
+No subas `includes/config.local.php` a GitHub. Ese archivo queda solo en Hostinger y contiene la clave real de la base.
+
+## 4) Estructura central
+
+La base nueva incluye:
+
+- Nucleo del holding: `companies`, `sites`, `users`, `services`, `service_modules`, `api_clients`, `customers`, `leads`, `audit_logs`.
+- Web y blog: `posts`, `post_images`, `post_likes`, `post_comments`.
+- Bocado: `bocado_locations`, `bocado_cost_centers`, `bocado_diners`, `bocado_meal_types`, `bocado_meal_events`.
+- BlueSales: `bluesales_accounts`, `bluesales_contacts`, `bluesales_products`, `bluesales_opportunities`, `bluesales_opportunity_items`, `bluesales_orders`, `bluesales_order_items`.
+
+Mas detalle en `database/HOLDING_DATABASE.md`.
+
+## 5) Permisos
+
 - Si mantienes fallback JSON, conserva permisos de lectura/escritura para `data/`.
-- Recomendación estándar: `644` para archivos y `755` para carpetas.
+- Recomendacion estandar: `644` para archivos y `755` para carpetas.
 
-## 5) Accesos iniciales
-- Crea usuarios manualmente desde un entorno controlado (Admin o SQL) con contraseñas únicas y robustas.
-- No publiques ni compartas credenciales en archivos de documentación.
+## 6) Accesos iniciales
 
-## 6) Seguridad inicial
-- Usa contraseñas únicas por entorno (local, staging, producción).
-- Mantén `data/.htaccess` para bloquear acceso directo a JSON.
+- Crea usuarios manualmente desde un entorno controlado o desde SQL.
+- Usa contrasenas unicas y robustas.
+- No publiques ni compartas credenciales en documentacion ni en GitHub.
+
+Usuarios demo incluidos solo para pruebas:
+
+```txt
+demo_admin / Demo1234!      -> holding.admin, bocado.supervisor, bluesales.manager
+demo_bocado / Demo1234!     -> bocado.operator
+demo_bluesales / Demo1234!  -> bluesales.sales_rep
+```
+
+Cambia o elimina estas cuentas antes de produccion real.
+
+## 7) Seguridad inicial
+
+- Usa credenciales distintas por entorno: local, staging y produccion.
+- Manten `data/.htaccess` para bloquear acceso directo a JSON.
 - Usa HTTPS activo con SSL de Hostinger.
 
-## 7) URLs clave
+## 8) URLs clave
+
 - Inicio: `/index.php`
 - Servicios: `/servicios.php`
-- Blog público: `/blog.php`
+- Blog publico: `/blog.php`
 - Login: `/login.php`
 - Panel cliente: `/panel.php`
-- Admin blog: `/admin.php`
+- Admin: `/admin.php`
 
-## 8) Configurar accesos reales a servicios
-- Actualiza `private_url` en `services` (DB) o en `data/services.json` antes de sincronizar.
+## 9) Configurar accesos reales a servicios
 
-## 9) Verificación rápida post-lanzamiento
+Actualiza `private_url` en la tabla `services`:
+
+- Bocado: `https://bocado.ccruces.com/login`
+- BlueSales: `https://bluesales.ccruces.com`
+
+## 10) Verificacion rapida post-lanzamiento
+
 - Login funcional con cuentas creadas de forma segura.
-- Crear/eliminar post desde `admin.php`.
-- Apertura de demos y rutas privadas por servicio.
-- Navegación completa sin errores PHP.
+- Servicios iniciales visibles: Bocado y BlueSales.
+- Blog con publicaciones demo para Bocado y BlueSales.
+- Bocado con sedes, centros de costo, comensales y consumos demo.
+- BlueSales con clientes, productos, oportunidades y pedidos demo.
+- Apertura de Bocado y Bluesales desde sus enlaces privados.
+- Navegacion completa sin errores PHP.

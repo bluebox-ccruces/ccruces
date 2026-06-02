@@ -2,6 +2,7 @@
 
 const DATA_DIR = __DIR__ . '/../../data';
 const CONFIG_FILE = __DIR__ . '/../config.php';
+const APP_COMPANY_ID = 'ccruces';
 
 if (!function_exists('str_starts_with')) {
     function str_starts_with(string $haystack, string $needle): bool

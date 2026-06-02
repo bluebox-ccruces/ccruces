@@ -12,7 +12,15 @@ if (!$service) {
 }
 
 require_login();
-$privateEntryUrl = service_private_entry_url($service);
+$user = current_user();
+$username = (string) ($user['username'] ?? '');
+if (!user_has_service_access($username, $serviceId)) {
+    set_flash('error', 'No tienes acceso habilitado para este servicio.');
+    header('Location: ' . app_url('panel.php'));
+    exit;
+}
+
+$privateEntryUrl = service_private_platform_url($service);
 
 render_header('Acceso a servicio', 'services');
 ?>
@@ -22,15 +30,18 @@ render_header('Acceso a servicio', 'services');
 
     <article class="panel">
         <p><strong>Modo actual:</strong> Acceso autenticado</p>
-        <p>
-            Este enlace debe apuntar al entorno productivo de tu servicio.
-            Ahora esta configurado como: <code><?= e($privateEntryUrl) ?></code>
-        </p>
+        <?php if ($privateEntryUrl !== ''): ?>
+            <p>Tu usuario tiene acceso activo a este servicio.</p>
+            <p>Destino configurado: <code><?= e($privateEntryUrl) ?></code></p>
+        <?php else: ?>
+            <p>Tu usuario tiene acceso activo, pero el entorno privado todav&iacute;a no tiene URL configurada.</p>
+        <?php endif; ?>
         <div class="row-actions">
-            <a class="btn-mini main" href="<?= e($privateEntryUrl) ?>" target="_blank" rel="noopener noreferrer">Abrir plataforma</a>
+            <?php if ($privateEntryUrl !== ''): ?>
+                <a class="btn-mini main" href="<?= e($privateEntryUrl) ?>" target="_blank" rel="noopener noreferrer">Abrir plataforma</a>
+            <?php endif; ?>
             <a class="btn-mini" href="<?= e(app_url('servicios.php')) ?>">Volver a servicios</a>
         </div>
     </article>
 </main>
 <?php render_footer(); ?>
-

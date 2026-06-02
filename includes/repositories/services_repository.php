@@ -4,7 +4,13 @@ function services_all(): array
 {
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->query('SELECT id, name, tagline, description, summary, content, benefits, financial_benefits, roi_note, video_url, logo, demo_url, private_url, status, sort_order FROM services ORDER BY sort_order ASC, name ASC');
+        $stmt = $pdo->prepare(
+            'SELECT id, name, tagline, description, summary, content, benefits, financial_benefits, roi_note, video_url, logo, demo_url, private_url, status, sort_order
+             FROM services
+             WHERE company_id = ? AND is_active = 1
+             ORDER BY sort_order ASC, name ASC'
+        );
+        $stmt->execute([APP_COMPANY_ID]);
         return $stmt->fetchAll();
     }
 
@@ -16,8 +22,13 @@ function service_by_id(string $id): ?array
 {
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('SELECT id, name, tagline, description, summary, content, benefits, financial_benefits, roi_note, video_url, logo, demo_url, private_url, status, sort_order FROM services WHERE id = ? LIMIT 1');
-        $stmt->execute([$id]);
+        $stmt = $pdo->prepare(
+            'SELECT id, name, tagline, description, summary, content, benefits, financial_benefits, roi_note, video_url, logo, demo_url, private_url, status, sort_order
+             FROM services
+             WHERE id = ? AND company_id = ? AND is_active = 1
+             LIMIT 1'
+        );
+        $stmt->execute([$id, APP_COMPANY_ID]);
         $service = $stmt->fetch();
         return $service ?: null;
     }
@@ -60,9 +71,12 @@ function service_create(array $data): bool
 
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('INSERT INTO services (id, name, tagline, description, summary, content, benefits, financial_benefits, roi_note, video_url, logo, demo_url, private_url, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt = $pdo->prepare('INSERT INTO services (id, company_id, slug, category, name, tagline, description, summary, content, benefits, financial_benefits, roi_note, video_url, logo, demo_url, private_url, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         return $stmt->execute([
             $payload['id'],
+            APP_COMPANY_ID,
+            $payload['id'],
+            'servicio',
             $payload['name'],
             $payload['tagline'],
             $payload['description'],
@@ -115,7 +129,7 @@ function service_update(string $id, array $data): bool
 
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('UPDATE services SET name = ?, tagline = ?, description = ?, summary = ?, content = ?, benefits = ?, financial_benefits = ?, roi_note = ?, video_url = ?, logo = ?, demo_url = ?, private_url = ?, status = ?, sort_order = ? WHERE id = ?');
+        $stmt = $pdo->prepare('UPDATE services SET name = ?, tagline = ?, description = ?, summary = ?, content = ?, benefits = ?, financial_benefits = ?, roi_note = ?, video_url = ?, logo = ?, demo_url = ?, private_url = ?, status = ?, sort_order = ? WHERE id = ? AND company_id = ?');
         return $stmt->execute([
             $payload['name'],
             $payload['tagline'],
@@ -132,6 +146,7 @@ function service_update(string $id, array $data): bool
             $payload['status'],
             $payload['sort_order'],
             $id,
+            APP_COMPANY_ID,
         ]);
     }
 
@@ -154,8 +169,8 @@ function service_delete(string $id): bool
 
     $pdo = db();
     if ($pdo) {
-        $stmt = $pdo->prepare('DELETE FROM services WHERE id = ?');
-        return $stmt->execute([$id]);
+        $stmt = $pdo->prepare('DELETE FROM services WHERE id = ? AND company_id = ?');
+        return $stmt->execute([$id, APP_COMPANY_ID]);
     }
 
     $rows = array_values(array_filter(services_all(), static fn(array $service): bool => ($service['id'] ?? '') !== $id));
