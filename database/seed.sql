@@ -26,9 +26,9 @@ status = VALUES(status);
 
 INSERT INTO users (company_id, username, email, name, role, password_hash, status) VALUES
 ('ccruces', 'ccruces', 'ccruces@ccruces.com', 'Administrador CCruces', 'admin', '$2y$10$bnOVcnWTaKJiDzRVVszSi.UemM1kmr93aWCc7Nxd7mTQ/j/JD3Mry', 1),
-('ccruces', 'demo_admin', 'demo.admin@ccruces.com', 'Demo Administrador', 'admin', '$2y$10$P77lGyCz4gWUoac/muRM5.O5g8rxAhNm6sTEVNFnnD/5DC32XxRNC', 1),
-('ccruces', 'demo_bocado', 'demo.bocado@ccruces.com', 'Demo Bocado', 'client', '$2y$10$P77lGyCz4gWUoac/muRM5.O5g8rxAhNm6sTEVNFnnD/5DC32XxRNC', 1),
-('ccruces', 'demo_bluesales', 'demo.bluesales@ccruces.com', 'Demo BlueSales', 'client', '$2y$10$P77lGyCz4gWUoac/muRM5.O5g8rxAhNm6sTEVNFnnD/5DC32XxRNC', 1)
+('ccruces', 'demo_admin', 'demo.admin@ccruces.com', 'Demo Administrador', 'admin', '$2y$10$uooWJ.T/wzsq1baIlIt05.vg3tsLMXg11N9Nh1CiVrKzA3jOYFK8S', 1),
+('ccruces', 'demo_bocado', 'demo.bocado@ccruces.com', 'Demo Bocado', 'client', '$2y$10$uooWJ.T/wzsq1baIlIt05.vg3tsLMXg11N9Nh1CiVrKzA3jOYFK8S', 1),
+('ccruces', 'demo_bluesales', 'demo.bluesales@ccruces.com', 'Demo BlueSales', 'client', '$2y$10$uooWJ.T/wzsq1baIlIt05.vg3tsLMXg11N9Nh1CiVrKzA3jOYFK8S', 1)
 ON DUPLICATE KEY UPDATE
 company_id = VALUES(company_id),
 email = VALUES(email),
